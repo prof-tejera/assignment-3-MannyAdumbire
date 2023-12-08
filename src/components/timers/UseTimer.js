@@ -4,11 +4,11 @@ import * as h from "../../utils/helpers.js";
 
 // Custom hook to manage the state of timer components.
 export const useTimer = (timerId) => {
-  const { timers, setSecondsLeft,status, getRemainingTime,activeTimer, isRunning, nextTimer } =
+  const { timersM, setSecondsLeft,status, getRemainingTime,activeTimer, isRunning, nextTimer } =
     useContext(TimerQueueContext);
 
     // Get the timer object that matches the timerId.
-  const timer = timers.filter((t) => t.timerId === timerId)[0];
+  const timer = timersM.get(timerId);
 
   // Props that should cause component rerender.
   const [roundNumber, setRoundNumber] = useState(1);
@@ -96,7 +96,7 @@ export const useTimer = (timerId) => {
             // No more rounds left.
             timer.status = "complete";
             nextTimer();
-            setSecondsLeft(getRemainingTime(timers));
+            setSecondsLeft(getRemainingTime(timersM));
             resetTimer();
           }
         }
@@ -111,7 +111,7 @@ export const useTimer = (timerId) => {
   }, [
     setSecondsLeft,
     timer,
-    timers,
+    timersM,
     isRunning,
     roundNumber,
     minutesPerRound,

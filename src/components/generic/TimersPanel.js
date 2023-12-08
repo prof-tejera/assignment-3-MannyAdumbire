@@ -18,7 +18,7 @@ const StyledTimers = styled(ws.Container)`
     `}
 `;
 
-const TimersPanel = ({ timers, ...props }) => {
+const TimersPanel = ({ timersM, ...props }) => {
   const { removeTimer } = useContext(TimerQueueContext);
 
   // const completedTimers = timers.filter((timer) => timer.status === "completed");
@@ -26,12 +26,16 @@ const TimersPanel = ({ timers, ...props }) => {
   //   (timer) => timer.status !== "completed"
   // );  
 
+  const timersArr = Array.from(timersM.entries());
   // Keep the current mode in sync with the parent component that passed it in.
   return (
     
     <StyledTimers {...props}>
-      {timers.map((timer, idx) => (
-        <ws.Container status={timer.status} key={`button-${idx}`} {...props}>
+      {/* TODO - This causes error that is difficult to pinpoint */}
+      {/* {(()=>{ */}
+      {/* })} */}
+      {timersArr.map(([id, timer])=>(
+        <ws.Container status={timer.status} key={`button-${id}`} {...props}>
           <Button
             type="remove"
             label=""
@@ -40,7 +44,7 @@ const TimersPanel = ({ timers, ...props }) => {
             hover="lightcoral"
             onClick={() => removeTimer(timer.timerId)}
           />
-          <timer.C key={`timer-${idx}`} {...timer} />
+          <timer.C key={`timer-${id}`} {...timer} />
         </ws.Container>
       ))}
     </StyledTimers>

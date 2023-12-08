@@ -16,7 +16,7 @@ const Timers = styled.div`
 
 
 const WorkoutView = (children) => {
-  const { timers, secondsLeft, setStatus, nextTimer, isRunning} =
+  const { timers,timersM, secondsLeft, setStatus, nextTimer, isRunning} =
     useContext(TimerQueueContext);
 
   const handleReset = () => {
@@ -57,7 +57,7 @@ const WorkoutView = (children) => {
         ))}
       </ws.Container>
       <TimerTotalDisplay title="Time Left: " seconds={secondsLeft} />
-      <TimersPanel timers={timers} />
+      <TimersPanel timersM={timersM} />
     </Timers>
   );
 };

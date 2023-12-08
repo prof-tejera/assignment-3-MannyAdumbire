@@ -31,7 +31,7 @@ const timerComponents = {
 };
 
 const WorkoutEdit = () => {
-  const { timers, secondsTotal, addTimer} =
+  const { timers, timersM, secondsTotal, addTimer} =
     useContext(TimerQueueContext);
   // Start with empty to display only the times.
   const [timerType, setTimerType] = useState("");
@@ -201,7 +201,7 @@ const WorkoutEdit = () => {
           />
         </ws.Container>
       )}
-      <TimersPanel timers={timers}  />
+      <TimersPanel timersM={timersM}  />
     </WorkoutEditWrap>
   );
 };
