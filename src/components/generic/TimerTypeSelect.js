@@ -24,12 +24,12 @@ const TimerOptionsSelect = ({
   label,
   options,
   selected,
-  propSetter,
+  onChangeFn,
   disabled,
   ...props
 }) => {
   function handleChange(e) {
-    propSetter(e.target.textContent);
+    onChangeFn(e.target.textContent);
   }
 
   const safeLabel = label.replace(/[^a-zA-Z]+/g, "").toLowerCase();

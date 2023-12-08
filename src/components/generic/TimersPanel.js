@@ -3,7 +3,7 @@ import styled,{css} from "styled-components";
 import * as ws from "../../WorkoutStyles";
 
 // Contexts.
-import { TimerQueueContext } from "../../TimerQueueContext.js";
+import { WorkoutContext } from "../../WorkoutContext.js";
 
 // Styled components.
 import Button from "./Button.js";
@@ -18,15 +18,15 @@ const StyledTimers = styled(ws.Container)`
     `}
 `;
 
-const TimersPanel = ({ timersM, ...props }) => {
-  const { removeTimer } = useContext(TimerQueueContext);
+const TimersPanel = ({ timers, ...props }) => {
+  const { removeTimer } = useContext(WorkoutContext);
 
   // const completedTimers = timers.filter((timer) => timer.status === "completed");
   // const notCompletedTimers = timers.filter(
   //   (timer) => timer.status !== "completed"
   // );  
 
-  const timersArr = Array.from(timersM.entries());
+  const timersArr = Array.from(timers.entries());
   // Keep the current mode in sync with the parent component that passed it in.
   return (
     

@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect, useContext } from "react";
-import { TimerQueueContext } from "../../TimerQueueContext.js";
+import { WorkoutContext } from "../../WorkoutContext.js";
 import * as h from "../../utils/helpers.js";
 
 // Custom hook to manage the state of timer components.
 export const useTimer = (timerId) => {
-  const { timersM, setSecondsLeft,status, getRemainingTime,activeTimer, isRunning, nextTimer } =
-    useContext(TimerQueueContext);
+  const { timersMap, workout, setSecondsLeft,status, getRemainingTime,activeTimer, isRunning, nextTimer } =
+    useContext(WorkoutContext);
 
     // Get the timer object that matches the timerId.
-  const timer = timersM.get(timerId);
+  const timer = timersMap.get(timerId);
 
   // Props that should cause component rerender.
   const [roundNumber, setRoundNumber] = useState(1);
@@ -96,7 +96,7 @@ export const useTimer = (timerId) => {
             // No more rounds left.
             timer.status = "complete";
             nextTimer();
-            setSecondsLeft(getRemainingTime(timersM));
+            setSecondsLeft(getRemainingTime(timersMap));
             resetTimer();
           }
         }
@@ -111,7 +111,7 @@ export const useTimer = (timerId) => {
   }, [
     setSecondsLeft,
     timer,
-    timersM,
+    timersMap,
     isRunning,
     roundNumber,
     minutesPerRound,

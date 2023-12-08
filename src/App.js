@@ -5,7 +5,7 @@ import styled from "styled-components";
 import DocumentationView from "./views/DocumentationView";
 import WorkoutView from "./views/WorkoutView";
 import WorkoutEdit from "./views/WorkoutEdit";
-import TimerQueueContextWrap from "./TimerQueueContext";
+import WorkoutContextWrap from "./WorkoutContext";
 
 const Container = styled.div`
   background: black;
@@ -46,14 +46,14 @@ const App = () => {
     <Container>
       <Router>
         <Nav />
-        <TimerQueueContextWrap>
+        <WorkoutContextWrap>
           <Routes>
             <Route path="/docs" element={<DocumentationView />} />
             <Route path="/" element={<WorkoutView />} />
-            <Route path="/add" element={<WorkoutEdit />} />
+            <Route path="/edit" element={<WorkoutEdit />} />
             <Route path="*" element={<WorkoutEdit />} />
           </Routes>
-        </TimerQueueContextWrap>
+        </WorkoutContextWrap>
       </Router>
     </Container>
   );

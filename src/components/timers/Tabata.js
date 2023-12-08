@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useTimer } from "./UseTimer";
 import TimerDisplay from "../generic/TimerDisplay";
 import * as h from "../../utils/helpers.js";
-import "../../Timer.css";
 
 const timerType = "tabata";
 

@@ -5,7 +5,7 @@ const TimerOptionsSelect = ({
   label,
   options,
   selected,
-  propSetter,
+  onChangeFn,
   disabled,
   ...props
 }) => {
@@ -14,9 +14,9 @@ const TimerOptionsSelect = ({
   function handleChange(e) {
     // If the value is a number, convert it to a number otherwise leave it as a string.
     if (Number(e.target.value) == e.target.value) {
-      propSetter(parseInt(e.target.value));
+      onChangeFn(parseInt(e.target.value));
     } else {
-      propSetter(e.target.value);
+      onChangeFn(e.target.value);
     }
   }
 

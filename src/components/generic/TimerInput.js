@@ -7,13 +7,13 @@ const TimerInputs = styled(ws.Container)`
   flex-direction: column-reverse;
   cursor: pointer;
 `;
-const TimerInput = ({ label, value, propSetter, disabled, ...props }) => {
+const TimerInput = ({ label, value, onChangeFn, disabled, ...props }) => {
   const type = props.type || "number";
   const safeLabel = label.replace(/[^a-zA-Z]+/g, "").toLowerCase();
   const id = "timer-input-" + safeLabel;
 
   function handleChange(e) {
-    propSetter(parseInt(e.target.value));
+    onChangeFn(parseInt(e.target.value));
   }
   return (
     <TimerInputs disabled={disabled}>

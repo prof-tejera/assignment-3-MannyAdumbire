@@ -3,7 +3,7 @@ import styled from "styled-components";
 import * as ws from "../WorkoutStyles.js";
 
 // Contexts.
-import { TimerQueueContext } from "../TimerQueueContext.js";
+import { WorkoutContext } from "../WorkoutContext.js";
 
 // Styled components.
 import TimerTotalDisplay from "../components/generic/TimerTotalDisplay.js";
@@ -31,8 +31,8 @@ const timerComponents = {
 };
 
 const WorkoutEdit = () => {
-  const { timers, timersM, secondsTotal, addTimer} =
-    useContext(TimerQueueContext);
+  const {workout,  timers} =
+    useContext(WorkoutContext);
   // Start with empty to display only the times.
   const [timerType, setTimerType] = useState("");
 
@@ -52,7 +52,7 @@ const WorkoutEdit = () => {
     const restTimers = ["tabata"];
     if (timerType) {
       const type = timerType.toLowerCase();
-      addTimer(
+      workout.fn.AddTimer(
         {
         timerId: Date.now(),
         C: timerComponents[timerType],
@@ -74,7 +74,7 @@ const WorkoutEdit = () => {
       label: "Timer Type",
       value: timerType,
       options: ["Stopwatch", "Countdown", "XY", "Tabata"],
-      propSetter: setTimerType,
+      onChangeFn: setTimerType,
       type: "select",
     },
   ];
@@ -83,7 +83,7 @@ const WorkoutEdit = () => {
       label: "Mins",
       value: minutesPerRound,
       // options: [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-      propSetter: setMinutesPerRound,
+      onChangeFn: setMinutesPerRound,
       onClick: () => {
         setMinutesPerRound((mins) => {
           return (mins += 1);
@@ -96,7 +96,7 @@ const WorkoutEdit = () => {
       label: "Secs",
       value: secondsPerRound,
       // options: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-      propSetter: setSecondsPerRound,
+      onChangeFn: setSecondsPerRound,
       min: "0",
       max: "59",
       onClick: () => {
@@ -110,7 +110,7 @@ const WorkoutEdit = () => {
       label: "Rest(Mins)",
       value: minutesRest,
       // options: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-      propSetter: setMinutesRest,
+      onChangeFn: setMinutesRest,
       disabled: timerType !== "Tabata",
       min: "0",
       type: "number",
@@ -124,7 +124,7 @@ const WorkoutEdit = () => {
       label: "Rest(Secs)",
       value: secondsRest,
       // options: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-      propSetter: setSecondsRest,
+      onChangeFn: setSecondsRest,
       disabled: timerType !== "Tabata",
       min: "0",
       max: "59",
@@ -138,7 +138,7 @@ const WorkoutEdit = () => {
     {
       label: "Rounds",
       value: roundsTotal,
-      propSetter: setRoundsTotal,
+      onChangeFn: setRoundsTotal,
       disabled: ["Stopwatch", "Countdown"].includes(timerType),
       type: "number",
       min: "1",
@@ -160,7 +160,7 @@ const WorkoutEdit = () => {
             value={option.value}
             hover="silver"
             selected={timerType === option.value}
-            propSetter={option.propSetter}
+            onChangeFn={option.onChangeFn}
             disabled={option.disabled}
             options={option.options}
             {...option}
@@ -175,7 +175,7 @@ const WorkoutEdit = () => {
               label={timer.label}
               hover="silver"
               value={timer.value}
-              propSetter={timer.propSetter}
+              onChangeFn={timer.onChangeFn}
               disabled={timer.disabled}
               {...timer}
             />
@@ -197,11 +197,11 @@ const WorkoutEdit = () => {
           <span style={{ fontSize: "1rem" }}>Add {timerType}</span>
           <TimerTotalDisplay
             title="Total Workout Time: "
-            seconds={secondsTotal}
+            seconds={workout.options.secondsTotal}
           />
         </ws.Container>
       )}
-      <TimersPanel timersM={timersM}  />
+      <TimersPanel timers={timers}  />
     </WorkoutEditWrap>
   );
 };
