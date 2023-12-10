@@ -147,7 +147,11 @@ export const Container = styled.div`
   display: flex;
   justify-content: flex-start;
   align-items: baseline;
+  flex-grow: 0;
   & p {
     padding-left: 0.2rem;
+  }
+  & strong{
+    align-self: center;
   }
 `;

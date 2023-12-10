@@ -15,10 +15,10 @@ const Timers = styled.div`
 `;
 
 const WorkoutView = (children) => {
-  const { timers, workout, options, workoutFns } = useContext(WorkoutContext);
+  const { timers, options, workoutFns } = useContext(WorkoutContext);
 
   const handleReset = () => {
-    workoutFns.setStatus("reset");
+    workoutFns.setMode("reset");
   };
 
   const handleFastForward = () => {

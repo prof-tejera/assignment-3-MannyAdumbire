@@ -35,6 +35,8 @@ const XY = (props) => {
         secs={secondsShown}
         round={roundNumber}
         roundsTotal={props.roundsTotal}
+        isRoundTimer={true}
+        isRestTimer={false}
       />
   );
 };

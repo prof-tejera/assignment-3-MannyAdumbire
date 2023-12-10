@@ -6,6 +6,19 @@ import DocumentationView from "./views/DocumentationView";
 import WorkoutView from "./views/WorkoutView";
 import WorkoutEdit from "./views/WorkoutEdit";
 import WorkoutContextWrap from "./WorkoutContext";
+import { Button } from "./WorkoutStyles";
+
+const MenuButton = styled(Button)`
+  text-decoration: none;
+  & a{
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    width: 100%;
+    height: 100%;
+    
+  }
+`
 
 const Container = styled.div`
   background: black;
@@ -28,15 +41,15 @@ const Nav = () => {
   return (
     <nav>
       <ul>
-        <li>
+        <MenuButton>
           <Link to="/edit">Edit</Link>
-        </li>
-        <li>
+        </MenuButton>
+        <MenuButton>
           <Link to="/">Workout</Link>
-        </li>
-        <li>
+        </MenuButton>
+        <MenuButton>
           <Link to="/docs">Documentation</Link>
-        </li>
+        </MenuButton>
       </ul>
     </nav>
   );

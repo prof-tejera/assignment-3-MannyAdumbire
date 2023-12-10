@@ -18,9 +18,10 @@ import Countdown from "../components/timers/Countdown.js";
 import XY from "../components/timers/XY.js";
 import Tabata from "../components/timers/Tabata.js";
 
-const WorkoutEditWrap = styled.div`
+const WorkoutEditWrap = styled(ws.Container)`
   display: flex;
   flex-direction: column;
+  flex-grow: 0;
 `;
 
 const timerComponents = {
@@ -52,9 +53,10 @@ const WorkoutEdit = () => {
   const timeInputCheck =
     secondsPerRound + minutesPerRound + secondsRest + minutesRest;
 
+  // add a new timer the user's input values to the queue.
   function AddTimer() {
-    // add a new timer to the queue using the current values.
     const restTimers = ["tabata"];
+    const roundsTimers = ["xy", "tabata"];
     if (timerType) {
       const type = timerType.toLowerCase();
       workoutFns.addTimer(
@@ -67,7 +69,7 @@ const WorkoutEdit = () => {
         secondsPerRound: secondsPerRound,
         minutesRest: restTimers.includes(type) ? minutesRest : 0,
         secondsRest: restTimers.includes(type) ? secondsRest : 0,
-        roundsTotal: roundsTotal || 1,
+        roundsTotal: roundsTimers.includes(type) ? roundsTotal : 1,
       }
       );
     } else {

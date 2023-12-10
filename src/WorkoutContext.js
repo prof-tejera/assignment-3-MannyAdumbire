@@ -1,5 +1,5 @@
 // WorkoutContext.js
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export const WorkoutContext = React.createContext();
 
@@ -8,9 +8,6 @@ const WorkoutContextWrap = ({ children }) => {
   const [timersMap, setTimersMap] = useState(new Map());
   // Id of the active timer.
   const [activeTimer, setActiveTimer] = useState(null);
-  const [secondsTotal, setSecondsTotal] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
   // States "ready", "running", "stopped", "reset
   const [mode, setMode] = useState("stopped");
 
@@ -29,8 +26,6 @@ const WorkoutContextWrap = ({ children }) => {
     activeTimer: null,
     secondsTotal: 0,
     secondsLeft: 0,
-    timersMap: new Map(),
-    timersObj: new Map(),
   });
   const [workout, setWorkout] = useState({
     mode: mode,
@@ -50,31 +45,32 @@ const WorkoutContextWrap = ({ children }) => {
 
   useEffect(() => {
     if (mode === "running") {
-      setIsRunning(true);
-      // If the timer is missing, replace it.
-      if (!activeTimer) {
-        // if (!undefined) { // TODO - This causes error that is difficult to pinpoint
-        setActiveTimer(timersMap.entries().next().value);
+      // If active timer is missing/deleted, replace it.
+      if (!activeTimer || !timersMap.has(activeTimer)) {
+        resetActiveTimer();
       }
     } else if (mode === "stopped") {
-      setIsRunning(false);
+      stopAllTimers();
     } else if (mode === "reset") {
-      setIsRunning(false);
       resetWorkout();
+    }
+    function stopAllTimers() {
+      for( let [,timer] of timersMap.entries()) {
+        timer.status = "stopped";
+      };
     }
     function resetWorkout() {
       setMode("stopped");
-      timersMap.forEach((timer) => {
-        timer.mode = "stopped";
-      });
+      // Reset all timers to "stopped" so that "completed" timers will also be reset.
+      stopAllTimers();
+      resetActiveTimer();
       // setSecondsLeft(getRemainingTime(timersMap));
-      setSecondsTotal(getTotalTimerTime(timersMap));
-      // set first timer in queue as active timer or null if none.
-      setActiveTimer(
-        !!timersMap.keys().next().value ? timersMap.keys().next().value : null
-      );
+      // setSecondsTotal(getTotalTimerTime(timersMap));
+      setTimersMap(new Map(timersMap));
     }
-  }, [mode, activeTimer, setIsRunning, timersMap]);
+    // if (!undefined)  // TODO - causes error that is difficult to pinpoint
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   // Keep the options in sync with mode.
   useEffect(() => {
@@ -98,7 +94,7 @@ const WorkoutContextWrap = ({ children }) => {
   function addTimer(timer) {
     const newTimersMap = new Map(timersMap);
     // Set the active timer if there isn't one already & recalculate the total time.
-    setActiveTimer(activeTimer || timer.timerId);
+    resetActiveTimer();
     // Add the new time.
     newTimersMap.set(timer.timerId, timer);
     setTimersMap(newTimersMap);
@@ -109,27 +105,25 @@ const WorkoutContextWrap = ({ children }) => {
       fns: { ...workout.fns },
     });
   }
-
-  // Get the total time for all timers.
-  function getTotalTimerTime(tmrs) {
-    // Loop through the timers and add up the total time.
-    let total = 0;
-    tmrs.forEach((timer) => {
-      total +=
-        (timer.minutesPerRound * 60 + timer.secondsPerRound) *
-          timer.roundsTotal +
-        (timer.minutesRest * 60 + timer.secondsRest) * timer.roundsTotal;
-    });
-    return total;
+  // Reset the active timer to the first timer in the queue that isn't completed.
+  function resetActiveTimer() { 
+    for( let [id, timer] of timersMap){
+      if (timer.status !== "completed") {
+        setActiveTimer(id);
+        break;
+      }
+    }
   }
 
+
+  // eslint-disable-next-line no-unused-vars
   function getRemainingTime() {
     // Get the total time for all timers that aren't completed.
     // Loop through the timers and add up the total time.
     let total = 0;
     const timersIterator = timersMap.entries();
-    for (let [key, value] of timersIterator) {
-      if (value.mode !== "completed") {
+    for (let [, value] of timersIterator) {
+      if (value.status !== "completed") {
         total +=
           (value.minutesPerRound * 60 + value.secondsPerRound) *
             value.roundsTotal +
@@ -145,10 +139,10 @@ const WorkoutContextWrap = ({ children }) => {
     } else {
       let timersIterator = timersMap.entries();
       for (let [key, value] of timersIterator) {
+        value.status = "completed";
         if (key === activeTimer) {
           const nextTimer = timersIterator.next().value;
           if (nextTimer) {
-            value.mode = "completed";
             // If there is another timer, set it as the active timer.
             setActiveTimer(nextTimer[0]);
             return;
@@ -168,7 +162,7 @@ const WorkoutContextWrap = ({ children }) => {
     // create a new Map to trigger rerender.
     setTimersMap(new Map(timersMap));
     // Update the total time.
-    setSecondsTotal(getTotalTimerTime(timersMap));
+    // setSecondsTotal(getTotalTimerTime(timersMap));
   }
 
   return (

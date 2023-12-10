@@ -34,6 +34,8 @@ const Tabata = (props) => {
         secs={secondsShown}
         round={roundNumber}
         roundsTotal={props.roundsTotal}
+        isRoundTimer={true}
+        isRestTimer={true}
       />
   );
 };
