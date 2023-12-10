@@ -20,7 +20,7 @@ const TimerDisplayWrap = styled.div`
      & p, & span {
       color:grey;
       text-decoration: line-through;
-    `}
+     }`}
 `;
 
 const TimerDisplayTime = styled(ws.Container)`

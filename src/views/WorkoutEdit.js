@@ -31,8 +31,13 @@ const timerComponents = {
 };
 
 const WorkoutEdit = () => {
-  const {workout,  timers} =
+  const {workout,  timers, workoutFns} =
     useContext(WorkoutContext);
+
+  // Stop running timers to edit them.
+  if( "running" === workout.options.mode){
+    workoutFns.setMode("stopped");
+  }
   // Start with empty to display only the times.
   const [timerType, setTimerType] = useState("");
 
@@ -52,12 +57,12 @@ const WorkoutEdit = () => {
     const restTimers = ["tabata"];
     if (timerType) {
       const type = timerType.toLowerCase();
-      workout.fn.AddTimer(
+      workoutFns.addTimer(
         {
         timerId: Date.now(),
         C: timerComponents[timerType],
         type: type,
-        status: "ready",
+        status: "stopped",
         minutesPerRound: minutesPerRound,
         secondsPerRound: secondsPerRound,
         minutesRest: restTimers.includes(type) ? minutesRest : 0,

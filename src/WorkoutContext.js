@@ -4,49 +4,56 @@ import React, { useCallback, useEffect, useState } from "react";
 export const WorkoutContext = React.createContext();
 
 const WorkoutContextWrap = ({ children }) => {
-  // Id of the active timer.
+  // use a map
   const [timersMap, setTimersMap] = useState(new Map());
+  // Id of the active timer.
   const [activeTimer, setActiveTimer] = useState(null);
   const [secondsTotal, setSecondsTotal] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   // States "ready", "running", "stopped", "reset
   const [mode, setMode] = useState("stopped");
+
+  /**
+   * @param {Object} options
+   * @param {Map} options.timersMap - for accessing timer directly by id.
+   * @param {Object} options.timersObj - for timers persistence(JSON).
+   * @param {boolean} options.isRunning - Whether the workout is running.
+   * @param {string} options.activeTimer - The id of the active timer.
+   * @param {number} options.secondsTotal - set time on all timers totalled.
+   * @param {number} options.secondsLeft - time left on all timers totalled.
+   */
   const [options, setOptions] = useState({
+    timersObj: {},
     isRunning: false,
     activeTimer: null,
     secondsTotal: 0,
     secondsLeft: 0,
     timersMap: new Map(),
+    timersObj: new Map(),
   });
   const [workout, setWorkout] = useState({
     mode: mode,
     options: options,
     timers: timersMap,
   });
-  const workoutFns = { addTimer, removeTimer, nextTimer, setMode};
+  const workoutFns = { addTimer, removeTimer, nextTimer, setMode };
 
-  const workoutProps = {  
+  const workoutProps = {
     workout,
     setWorkout,
     options,
     timers: timersMap,
     workoutFns,
     addTimer,
-  }
-  // Keep the options in sync with mode.
-  useEffect(() => {
-    options.mode = mode;
-    setOptions(options);
-  }, [options, mode]);
+  };
 
   useEffect(() => {
     if (mode === "running") {
       setIsRunning(true);
-      const timerMap = timersMap.get(activeTimer);
       // If the timer is missing, replace it.
       if (!activeTimer) {
-        // if (!nonexistent) { // TODO - This causes error that is difficult to pinpoint
+        // if (!undefined) { // TODO - This causes error that is difficult to pinpoint
         setActiveTimer(timersMap.entries().next().value);
       }
     } else if (mode === "stopped") {
@@ -58,15 +65,34 @@ const WorkoutContextWrap = ({ children }) => {
     function resetWorkout() {
       setMode("stopped");
       timersMap.forEach((timer) => {
-        timer.mode = "ready";
+        timer.mode = "stopped";
       });
       // setSecondsLeft(getRemainingTime(timersMap));
       setSecondsTotal(getTotalTimerTime(timersMap));
+      // set first timer in queue as active timer or null if none.
       setActiveTimer(
-        timersMap.keys().next().value ? timersMap.keys().next().value : null
+        !!timersMap.keys().next().value ? timersMap.keys().next().value : null
       );
     }
   }, [mode, activeTimer, setIsRunning, timersMap]);
+
+  // Keep the options in sync with mode.
+  useEffect(() => {
+    options.mode = mode;
+    options.activeTimer = activeTimer;
+    setOptions({ ...options });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, activeTimer]);
+
+  // Set update the status of the active timer to match the workout mode.
+  useEffect(() => {
+    const timerM = timersMap.get(activeTimer);
+    if (timerM) {
+      timerM.status = mode;
+      setTimersMap(new Map(timersMap));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTimer]);
 
   // Logic to add a timer and update the total times.
   function addTimer(timer) {
@@ -76,7 +102,12 @@ const WorkoutContextWrap = ({ children }) => {
     // Add the new time.
     newTimersMap.set(timer.timerId, timer);
     setTimersMap(newTimersMap);
-    setWorkout({ mode: mode, options: options, timers: newTimersMap, fns: {...workout.fns} });  
+    setWorkout({
+      mode: mode,
+      options: options,
+      timers: newTimersMap,
+      fns: { ...workout.fns },
+    });
   }
 
   // Get the total time for all timers.
@@ -127,7 +158,7 @@ const WorkoutContextWrap = ({ children }) => {
           }
         }
       }
-      setTimersMap(timersMap);
+      setTimersMap( new Map(timersMap));
     }
   }
 

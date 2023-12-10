@@ -19,7 +19,7 @@ const StyledTimers = styled(ws.Container)`
 `;
 
 const TimersPanel = ({ timers, ...props }) => {
-  const { removeTimer } = useContext(WorkoutContext);
+  const { workoutFns } = useContext(WorkoutContext);
 
   // const completedTimers = timers.filter((timer) => timer.status === "completed");
   // const notCompletedTimers = timers.filter(
@@ -42,7 +42,7 @@ const TimersPanel = ({ timers, ...props }) => {
             title="Remove Timer"
             img="❌"
             hover="lightcoral"
-            onClick={() => removeTimer(timer.timerId)}
+            onClick={() => workoutFns.removeTimer(timer.timerId)}
           />
           <timer.C key={`timer-${id}`} {...timer} />
         </ws.Container>

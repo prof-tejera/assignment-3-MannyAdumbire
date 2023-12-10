@@ -1,4 +1,4 @@
-import React, { useContext} from "react";
+import React, { useContext } from "react";
 import styled from "styled-components";
 
 import * as ws from "../WorkoutStyles";
@@ -14,30 +14,29 @@ const Timers = styled.div`
   color: white;
 `;
 
-
 const WorkoutView = (children) => {
-  const { timers,timersMap, secondsLeft, setStatus, nextTimer, isRunning} =
-    useContext(WorkoutContext);
+  const { timers, workout, options, workoutFns } = useContext(WorkoutContext);
 
   const handleReset = () => {
-    setStatus("reset");
+    workoutFns.setStatus("reset");
   };
 
   const handleFastForward = () => {
-    nextTimer();
+    workoutFns.nextTimer();
   };
 
   // Start/Stop.
   function handleStartStop() {
-    setStatus(isRunning ? "stopped" : "running");
+    console.log(options);
+    workoutFns.setMode(options.mode === "running" ? "stopped" : "running");
   }
 
   const buttonTypes = [
     {
-      type: isRunning ? "stop" : "start",
-      label: isRunning ? "⏹ STOP" : "▶ START",
-      color: isRunning ? "darkred" : "darkgreen",
-      hover: isRunning ? "red" : "green",
+      type: options.mode === "running" ? "stop" : "start",
+      label: options.mode === "running" ? "⏹ STOP" : "▶ START",
+      color: options.mode === "running" ? "darkred" : "darkgreen",
+      hover: options.mode === "running" ? "red" : "green",
       onClick: handleStartStop,
     },
     {
@@ -56,7 +55,7 @@ const WorkoutView = (children) => {
           <Button key={`btn-${idx}`} {...btn} />
         ))}
       </ws.Container>
-      <TimerTotalDisplay title="Time Left: " seconds={secondsLeft} />
+      <TimerTotalDisplay title="Time Left: " seconds={options.secondsLeft} />
       <TimersPanel timers={timers} />
     </Timers>
   );

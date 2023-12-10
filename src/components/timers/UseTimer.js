@@ -4,11 +4,10 @@ import * as h from "../../utils/helpers.js";
 
 // Custom hook to manage the state of timer components.
 export const useTimer = (timerId) => {
-  const { timersMap, workout, setSecondsLeft,status, getRemainingTime,activeTimer, isRunning, nextTimer } =
-    useContext(WorkoutContext);
+  const { timers, mode, workoutFns, options } = useContext(WorkoutContext);
 
-    // Get the timer object that matches the timerId.
-  const timer = timersMap.get(timerId);
+  // Get the timer object that matches the timerId.
+  const timer = timers.get(timerId);
 
   // Props that should cause component rerender.
   const [roundNumber, setRoundNumber] = useState(1);
@@ -33,12 +32,10 @@ export const useTimer = (timerId) => {
   // Logic for rounds.
   useEffect(() => {
     function resetTimer() {
-      setSecsLeft(
-        h.secsFromMinsSecs(minutesPerRound, secondsPerRound) || 0
-      );
+      setSecsLeft(h.secsFromMinsSecs(minutesPerRound, secondsPerRound) || 0);
       setRoundNumber(1);
     }
-    if(status === "reset") {
+    if (options.mode === "reset") {
       resetTimer();
     }
 
@@ -48,59 +45,68 @@ export const useTimer = (timerId) => {
     const msUpdateFrequency = timerFrequency * timerUpdateFactor;
 
     // If the timer isn't running
-    if (!isRunning || activeTimer !== timerId) {
-      // cleanup the Interval
-      roundIntervalRef.current && clearInterval(roundIntervalRef.current);
-      return;
-    } else {
-      if (timer.status === "ready") {
-        timer.status = "running";
-      }
-      // setup new Interval.
-      roundIntervalRef.current = setInterval(() => {
-        if (!roundNumber) {
-          setRoundNumber(1);
+    switch (options.mode) {
+      case "stopped":
+        // Only run for the active timer.
+        if ("stopped" !== timer.status ) {
+          timer.status = "stopped";
         }
-        if (!msLeft.current) {
-          // get the total number of ms for the round.
-          msLeft.current = h.msFromMinsSecs(minutesPerRound, secondsPerRound);
+        // cleanup the Interval
+        roundIntervalRef.current && clearInterval(roundIntervalRef.current);
+        return;
+      case "running":
+        // Only run for the active timer.
+        if (timerId !== options.activeTimer) {
+          return;
+        }else{
+          // Set the timer status to match the workout mode.
+          timer.status = "running";
+
         }
-        msLeft.current -= timerFrequency;
-        // Update the displayed time left.
-        console.info(msLeft.current);
-        if (msLeft.current >= timerFrequency) {
-          // Only cause a rerender on the update frequency, and on the last "tick".
-          if (msLeft.current % msUpdateFrequency === 0) {
-            setSecsLeft(msLeft.current / 1000);
+        roundIntervalRef.current = setInterval(() => {
+          if (!roundNumber) {
+            setRoundNumber(1);
           }
-        } else {
-          // Are there still rounds left?
-          if (roundNumber < roundsTotal) {
-            // Is there a rest period?
-            if ((minutesRest || secondsRest) && "resting" !== timer.status) {
-              // Initiate the rest period.
-              setSecsLeft(h.secsFromMinsSecs(minutesRest, secondsRest));
-              msLeft.current = h.msFromMinsSecs(minutesRest, secondsRest);
-              timer.status = "resting";
-            } else {
-              // Go to the next round.
-              setRoundNumber((prev) => prev + 1);
-              msLeft.current = h.msFromMinsSecs(
-                minutesPerRound,
-                secondsPerRound
-              );
-              timer.status = "running";
-              timer.status = "running";
+          if (!msLeft.current) {
+            // get the total number of ms for the round.
+            msLeft.current = h.msFromMinsSecs(minutesPerRound, secondsPerRound);
+          }
+          msLeft.current -= timerFrequency;
+          // Update the displayed time left.
+          console.info(msLeft.current);
+          if (msLeft.current >= timerFrequency) {
+            // Only cause a rerender on the update frequency, and on the last "tick".
+            if (msLeft.current % msUpdateFrequency === 0) {
+              setSecsLeft(msLeft.current / 1000);
             }
           } else {
-            // No more rounds left.
-            timer.status = "complete";
-            nextTimer();
-            setSecondsLeft(getRemainingTime(timersMap));
-            resetTimer();
+            // Are there still rounds left?
+            if (roundNumber < roundsTotal) {
+              // Is there a rest period?
+              if ((minutesRest || secondsRest) && "resting" !== timer.status) {
+                // Initiate the rest period.
+                setSecsLeft(h.secsFromMinsSecs(minutesRest, secondsRest));
+                msLeft.current = h.msFromMinsSecs(minutesRest, secondsRest);
+                timer.status = "resting";
+              } else {
+                // Go to the next round.
+                setRoundNumber((prev) => prev + 1);
+                msLeft.current = h.msFromMinsSecs(
+                  minutesPerRound,
+                  secondsPerRound
+                );
+                timer.status = "running";
+              }
+            } else {
+              // No more rounds left.
+              timer.status = "completed";
+              workoutFns.nextTimer();
+            }
           }
-        }
-      }, timerFrequency);
+        }, timerFrequency);
+        break;
+      default:
+        return;
     }
     return () => {
       // cleanup the Interval.
@@ -109,10 +115,11 @@ export const useTimer = (timerId) => {
       }
     };
   }, [
-    setSecondsLeft,
     timer,
-    timersMap,
-    isRunning,
+    timers,
+    options,
+    mode,
+    workoutFns,
     roundNumber,
     minutesPerRound,
     secondsPerRound,
@@ -120,16 +127,12 @@ export const useTimer = (timerId) => {
     secondsRest,
     roundsTotal,
     timerId,
-    nextTimer,
-    status,
-    activeTimer,
-    getRemainingTime
   ]);
 
   return {
     status: timer.status,
     secsLeft: secsLeft,
-    isrunning: isRunning,
+    isrunning: options.isRunning,
     roundNumber: roundNumber,
   };
 };
