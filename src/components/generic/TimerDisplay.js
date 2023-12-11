@@ -58,8 +58,8 @@ const TimerDisplay = (props) => {
       <span>
         {props.isRoundTimer &&
           ((props.status ===
-            "resting" ? "Rest r" : "R")) +
-              `ound #${props.round} of ${props.roundsTotal}`}
+            "resting" ? "Rest " : "Round ")) +
+              `#${props.round} of ${props.roundsTotal}`}
       </span>
     </TimerDisplayWrap>
   );

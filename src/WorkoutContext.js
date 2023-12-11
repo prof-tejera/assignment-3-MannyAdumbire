@@ -55,18 +55,17 @@ const WorkoutContextWrap = ({ children }) => {
       resetWorkout();
     }
     function stopAllTimers() {
-      for( let [,timer] of timersMap.entries()) {
-        timer.status = "stopped";
-      };
+      for (let [, timer] of timersMap.entries()) {
+        // only stop timers that aren't completed.
+          timer.status = "stopped";
+      }
+      setTimersMap(new Map(timersMap));
     }
     function resetWorkout() {
-      setMode("stopped");
       // Reset all timers to "stopped" so that "completed" timers will also be reset.
+      setMode("stopped");
       stopAllTimers();
       resetActiveTimer();
-      // setSecondsLeft(getRemainingTime(timersMap));
-      // setSecondsTotal(getTotalTimerTime(timersMap));
-      setTimersMap(new Map(timersMap));
     }
     // if (!undefined)  // TODO - causes error that is difficult to pinpoint
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,8 +92,8 @@ const WorkoutContextWrap = ({ children }) => {
   // Logic to add a timer and update the total times.
   function addTimer(timer) {
     const newTimersMap = new Map(timersMap);
-    // Set the active timer if there isn't one already & recalculate the total time.
-    resetActiveTimer();
+    // Set the active timer if there isn't one already.
+    (activeTimer && timersMap.get(activeTimer)) || resetActiveTimer();
     // Add the new time.
     newTimersMap.set(timer.timerId, timer);
     setTimersMap(newTimersMap);
@@ -106,15 +105,14 @@ const WorkoutContextWrap = ({ children }) => {
     });
   }
   // Reset the active timer to the first timer in the queue that isn't completed.
-  function resetActiveTimer() { 
-    for( let [id, timer] of timersMap){
+  function resetActiveTimer() {
+    for (let [id, timer] of timersMap) {
       if (timer.status !== "completed") {
         setActiveTimer(id);
         break;
       }
     }
   }
-
 
   // eslint-disable-next-line no-unused-vars
   function getRemainingTime() {
@@ -134,35 +132,47 @@ const WorkoutContextWrap = ({ children }) => {
   }
   // Move to the next timer.
   function nextTimer() {
-    if (activeTimer === null) {
+    if (activeTimer === null || timersMap.size === 0) {
       setMode("reset");
-    } else {
-      let timersIterator = timersMap.entries();
-      for (let [key, value] of timersIterator) {
-        value.status = "completed";
-        if (key === activeTimer) {
-          const nextTimer = timersIterator.next().value;
-          if (nextTimer) {
-            // If there is another timer, set it as the active timer.
-            setActiveTimer(nextTimer[0]);
-            return;
-          } else {
-            // No more timers, so reset.
-            setMode("reset");
-          }
+      return;
+    }
+    let timersIterator = timersMap.entries();
+    for (let [key, value] of timersIterator) {
+      value.status = "completed";
+      if (key === activeTimer) {
+        const nextTimer = timersIterator.next().value;
+        if (nextTimer) {
+          // If there is another timer, set it as the active timer.
+          setActiveTimer(nextTimer[0]);
+          return;
+        } else {
+          // No "next" timers left.
+          setMode("reset");
         }
       }
-      setTimersMap( new Map(timersMap));
     }
   }
 
   // remove a timer by id.
   function removeTimer(timerId) {
+    // account for removed active timer.
+    if (activeTimer === timerId) {
+      nextTimer();
+    }
+    let hasUncompletedTimers = false;
+    // if no more timers, reset the workout.
+    for (let [, timer] of timersMap.entries()) {
+      if (timer.status !== "completed") {
+        hasUncompletedTimers = true;
+      }
+    }
+    // remove the timer.
     timersMap.delete(timerId);
-    // create a new Map to trigger rerender.
+    // save updated state.
     setTimersMap(new Map(timersMap));
-    // Update the total time.
-    // setSecondsTotal(getTotalTimerTime(timersMap));
+    if (!hasUncompletedTimers) {
+      setMode("reset");
+    }
   }
 
   return (

@@ -36,6 +36,11 @@ export const useTimer = (timerId) => {
       msLeft.current = h.msFromMinsSecs(minutesPerRound, secondsPerRound);
       setRoundNumber(1);
     }
+    function completeTimer() {
+      timer.status = "completed";
+      workoutFns.nextTimer();
+      resetTimer();
+    }
 
     const timerFrequency = 250;
     const timerUpdateFactor = 4;
@@ -80,34 +85,38 @@ export const useTimer = (timerId) => {
                   setSecsLeft(msLeft.current / 1000);
                 }
               } else {
+                // The timer has run out.
                 if (msLeft.current === 0) {
                   setSecsLeft(0);
                 }
                 // Are there still rounds left?
-                if (roundNumber < roundsTotal || (timer.type === "tabata" && roundNumber <= roundsTotal)) {
-                  // Is there a rest period?
+                if (roundNumber <= roundsTotal) {
+                  const isLastRound = roundNumber === roundsTotal;
+                  // only rest if we are not already resting & there is a rest period.
+                  const isRestRound =
+                    "resting" !== timer.status && !!(minutesRest || secondsRest);
+                  // Is there a rest period or this the last round of tabata.
                   if (
-                    (minutesRest || secondsRest) &&
-                    "resting" !== timer.status
+                    (isRestRound && !isLastRound) ||
+                    (timer.type === "tabata" && isLastRound && isRestRound)
                   ) {
                     // Initiate the rest period.
                     timer.status = "resting";
                     setSecsLeft(h.secsFromMinsSecs(minutesRest, secondsRest));
                     msLeft.current = h.msFromMinsSecs(minutesRest, secondsRest);
-                  } else {
-                    // Go to the next round.
+                    return;
+                  } else if (!isLastRound && !isRestRound) {
+                    // Go to the next work round.
+                    timer.status = "running";
                     setRoundNumber((prev) => prev + 1);
                     msLeft.current = h.msFromMinsSecs(
                       minutesPerRound,
                       secondsPerRound
                     );
-                    timer.status = "running";
+                  } else {
+                    // onto the next timer.
+                    completeTimer();
                   }
-                } else {
-                  // No more rounds left.
-                  timer.status = "completed";
-                  workoutFns.nextTimer();
-                  resetTimer();
                 }
               }
             }, timerFrequency);
