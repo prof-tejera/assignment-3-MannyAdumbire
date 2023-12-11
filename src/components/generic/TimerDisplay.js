@@ -54,13 +54,13 @@ const TimerDisplay = (props) => {
       <TimerDisplayTime status={props.status}>
         {props.mins}:{props.secs}
       </TimerDisplayTime>
-      <p>{props.type}</p>{" "}
-      <span>
+      <p>{props.type} </p>
+      <small>
         {props.isRoundTimer &&
           ((props.status ===
-            "resting" ? "Rest r" : "R")) +
-              `ound #${props.round} of ${props.roundsTotal}`}
-      </span>
+            "resting" ? ": REST " : ": ROUND ")) +
+              `${props.round} / ${props.roundsTotal}`}
+      </small>
     </TimerDisplayWrap>
   );
 };
