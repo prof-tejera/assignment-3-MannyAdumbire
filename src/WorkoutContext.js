@@ -1,16 +1,66 @@
 // WorkoutContext.js
 import React, { useEffect, useState } from "react";
+// Components for the different types of timers.
+import Stopwatch from "./components/timers/Stopwatch.js";
+import Countdown from "./components/timers/Countdown.js";
+import XY from "./components/timers/XY.js";
+import Tabata from "./components/timers/Tabata.js";
 
 export const WorkoutContext = React.createContext();
 
-const WorkoutContextWrap = ({ children }) => {
+const timerComponents = {
+  stopwatch: Stopwatch,
+  countdown: Countdown,
+  xy: XY,
+  tabata: Tabata,
+};
+
+export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
+  let timersM = new Map();
+
+  // The timers URL param.
+  const [tmrsParam, setTmrsParam] = useState(initialTmrsParam);
+  // Convert the timers URL param to a Map.
+  if (tmrsParam) {
+    const tmrs = tmrsParam.replace("#", "");
+    let timersObj = JSON.parse(decodeURIComponent(tmrs));
+    for (let id in timersObj) {
+      if (!timersM.has(id)) {
+        for (let prop in timersObj[id]) {
+        // Convert numeric strings to numbers.
+          if ( !isNaN(Number(timersObj[id][prop]))) {
+            timersObj[id][prop] = Number(timersObj[id][prop]);
+          }
+        }
+        // set the status to "stopped" when loading from URL.
+        timersObj[id].status = "stopped";
+        timersObj[id].C  = timerComponents[timersObj[id].type];
+        // Use numeric ids for the Map.
+        timersM.set(Number(id), timersObj[id]);
+      }
+    }
+  }
+
   // use a map
-  const [timersMap, setTimersMap] = useState(new Map());
+  const [timersMap, setTimersMap] = useState(timersM || new Map());
   // Id of the active timer.
   const [activeTimer, setActiveTimer] = useState(null);
   // States "ready", "running", "stopped", "reset
   const [mode, setMode] = useState("stopped");
-
+  /**
+   * @param {Map} tmrsMap map of timers to update the URL with.
+   */
+  function updateTimersUrlParam(tmrsMap) {
+    // Get existing query string from the URL.
+    // const searchParams = new URLSearchParams(location.search);
+    // Update the query string to match the updated timers.
+    // searchParams.set("tmrs", getTimersUrlParam(tmrsMap));
+    // Update the URL.
+    const tmrs = getTimersUrlParam(tmrsMap);
+    window.location.hash = `#${tmrs}`;
+    setTmrsParam(tmrs);
+    // navigate( `edit/${getTimersUrlParam(tmrsMap)}`);
+  }
   /**
    * @param {Object} options
    * @param {Map} options.timersMap - for accessing timer directly by id.
@@ -41,6 +91,7 @@ const WorkoutContextWrap = ({ children }) => {
     timers: timersMap,
     workoutFns,
     addTimer,
+    tmrsParam,
   };
 
   useEffect(() => {
@@ -65,6 +116,7 @@ const WorkoutContextWrap = ({ children }) => {
       }
       setTimersMap(new Map(timersMap));
     }
+
     function resetWorkout() {
       // Reset all timers to "stopped" so that "completed" timers will also be reset.
       setMode("stopped");
@@ -107,7 +159,18 @@ const WorkoutContextWrap = ({ children }) => {
       timers: newTimersMap,
       fns: { ...workout.fns },
     });
+    // Update the URL with the new timer.
+    updateTimersUrlParam(newTimersMap);
   }
+
+  // Get a timers URL param from the timers Map.
+  function getTimersUrlParam(newTmrsMap) {
+    // Need to convert the Map to an object to be able to stringify it.
+    const timersObj = Object.fromEntries(newTmrsMap);
+    const timersUrl = encodeURIComponent(JSON.stringify(timersObj));
+    return `${timersUrl}`;
+  }
+
   // Reset the active timer to the first timer in the queue that isn't completed.
   function resetActiveTimer() {
     for (let [id, timer] of timersMap) {
@@ -172,11 +235,14 @@ const WorkoutContextWrap = ({ children }) => {
     }
     // remove the timer.
     timersMap.delete(timerId);
+    const newTimersMap = new Map(timersMap);
     // save updated state.
-    setTimersMap(new Map(timersMap));
+    setTimersMap(newTimersMap);
     if (!hasUncompletedTimers) {
       setMode("reset");
     }
+    // Update the URL with the new timer.
+    updateTimersUrlParam(newTimersMap);
   }
 
   return (
@@ -185,4 +251,3 @@ const WorkoutContextWrap = ({ children }) => {
     </WorkoutContext.Provider>
   );
 };
-export default WorkoutContextWrap;

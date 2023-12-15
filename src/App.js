@@ -1,24 +1,30 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import {React,useContext, useEffect} from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link
+} from "react-router-dom";
 import styled from "styled-components";
 
 import DocumentationView from "./views/DocumentationView";
 import WorkoutView from "./views/WorkoutView";
 import WorkoutEdit from "./views/WorkoutEdit";
-import WorkoutContextWrap from "./WorkoutContext";
+// Contexts.
+import { WorkoutContextWrap, WorkoutContext } from "./WorkoutContext";
+
 import { Button } from "./WorkoutStyles";
 
 const MenuButton = styled(Button)`
   text-decoration: none;
-  & a{
+  & a {
     display: flex;
     align-items: center;
     text-decoration: none;
     width: 100%;
     height: 100%;
-    
   }
-`
+`;
 
 const Container = styled.div`
   background: black;
@@ -30,7 +36,7 @@ const Container = styled.div`
     justify-content: flex-start;
     padding: 0.5rem;
   }
-  ul{
+  ul {
     display: flex;
     padding: 0;
   }
@@ -38,14 +44,19 @@ const Container = styled.div`
 `;
 
 const Nav = () => {
+  const {  tmrsParam } =
+    useContext(WorkoutContext);
+    // Rerender when the tmrsParam changes.
+    useEffect(() => {
+    }, [tmrsParam]);
   return (
     <nav>
       <ul>
         <MenuButton>
-          <Link to="/edit">Edit</Link>
+          <Link to={`/workout/${tmrsParam }`}>Workout</Link>
         </MenuButton>
         <MenuButton>
-          <Link to="/">Workout</Link>
+          <Link to={`/edit/${tmrsParam }`}>Edit</Link>
         </MenuButton>
         <MenuButton>
           <Link to="/docs">Documentation</Link>
@@ -55,15 +66,17 @@ const Nav = () => {
   );
 };
 const App = () => {
+  const tmrs = window.location.hash;
   return (
+    // Remove the hash from the URL.
     <Container>
       <Router>
+        <WorkoutContextWrap initialTmrsParam={tmrs}>
         <Nav />
-        <WorkoutContextWrap>
           <Routes>
+            <Route path="/workout/:tmrs" element={<WorkoutView />} />
+            <Route path="/edit/:tmrs" element={<WorkoutEdit />} />
             <Route path="/docs" element={<DocumentationView />} />
-            <Route path="/" element={<WorkoutView />} />
-            <Route path="/edit" element={<WorkoutEdit />} />
             <Route path="*" element={<WorkoutEdit />} />
           </Routes>
         </WorkoutContextWrap>

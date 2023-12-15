@@ -134,6 +134,7 @@ export const useTimer = (timerId) => {
         clearInterval(roundIntervalRef.current);
       }
     };
+    // TODO what does it mean to have a function in a dependency array?
   }, [
     timer,
     timers,

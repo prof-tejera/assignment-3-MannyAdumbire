@@ -15,7 +15,7 @@ const Timers = styled.div`
 `;
 
 const WorkoutView = (children) => {
-  const { timers, options, workoutFns } = useContext(WorkoutContext);
+  const { timers, options, workoutFns} = useContext(WorkoutContext);
 
   const handleReset = () => {
     workoutFns.setMode("reset");
