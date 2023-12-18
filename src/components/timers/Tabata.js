@@ -10,11 +10,7 @@ const Tabata = (props) => {
   const [minutesShown, setMinutesShown] = useState("00");
   const [secondsShown, setSecondsShown] = useState("00");
 
-  const {
-    status,
-    secsLeft,
-    roundNumber,
-  } = useTimer(props.timerId);
+  const { status, secsLeft, roundNumber } = useTimer(props.timerId);
 
   useEffect(() => {
     let secsPart = h.secsPartFromSecs(secsLeft);
@@ -24,19 +20,19 @@ const Tabata = (props) => {
     setMinutesShown(h.formatSeconds(minsPart));
   }, [secsLeft]);
 
-  
   return (
-      <TimerDisplay
-        id={props.timerId}
-        type={timerType}
-        status={status}
-        mins={minutesShown}
-        secs={secondsShown}
-        round={roundNumber}
-        roundsTotal={props.roundsTotal}
-        isRoundTimer={true}
-        isRestTimer={true}
-      />
+    <TimerDisplay
+      id={props.timerId}
+      type={timerType}
+      status={status}
+      mins={minutesShown}
+      secs={secondsShown}
+      round={roundNumber}
+      roundsTotal={props.roundsTotal}
+      isRoundTimer={true}
+      isRestTimer={true}
+      description={props.description}
+    />
   );
 };
 

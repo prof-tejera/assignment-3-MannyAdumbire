@@ -8,11 +8,27 @@ import Tabata from "./components/timers/Tabata.js";
 
 export const WorkoutContext = React.createContext();
 
+// Alphanumeric characters to use for the timer property or value.
+const alphanumeric =
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
 const timerComponents = {
   stopwatch: Stopwatch,
   countdown: Countdown,
   xy: XY,
   tabata: Tabata,
+};
+
+// To keep url short, map each timer property or string value to shorter character.
+const timerValParamMap = {
+  completed: "cmp",
+  running: "rng",
+  stopped: "stp",
+  reset: "rst",
+  countdown: "ctd",
+  stopwatch: "stw",
+  xy: "xy",
+  tabata: "tbt",
 };
 
 export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
@@ -22,23 +38,40 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
   const [tmrsParam, setTmrsParam] = useState(initialTmrsParam);
   // Convert the timers URL param to a Map.
   if (tmrsParam) {
-    const tmrs = tmrsParam.replace("#", "");
-    let timersObj = JSON.parse(decodeURIComponent(tmrs));
-    for (let id in timersObj) {
-      if (!timersM.has(id)) {
-        for (let prop in timersObj[id]) {
-        // Convert numeric strings to numbers.
-          if ( !isNaN(Number(timersObj[id][prop]))) {
-            timersObj[id][prop] = Number(timersObj[id][prop]);
-          }
-        }
-        // set the status to "stopped" when loading from URL.
-        timersObj[id].status = "stopped";
-        timersObj[id].C  = timerComponents[timersObj[id].type];
-        // Use numeric ids for the Map.
-        timersM.set(Number(id), timersObj[id]);
+    // Remove the # at the beginning of the hash.
+    let workoutStr = tmrsParam.replace("#", "");
+    // Decompress the URL param.
+    workoutStr = expandTimerPropVal(workoutStr);
+    let tmrsP = workoutStr.split("&");
+    tmrsP.forEach((tmrP)=>{
+      if (!tmrP) {
+        return;
       }
-    }
+      let [
+        timerId,
+        type,
+        status,
+        secondsPerRound,
+        minutesPerRound,
+        roundsTotal,
+        secondsRest,
+        minutesRest,
+        description,
+      ] = tmrP.split(",");
+      const timerObj = {};
+      timerObj.timerId = timerId;
+      timerObj.type = type;
+      timerObj.status = status;
+      timerObj.secondsPerRound = Number(secondsPerRound);
+      timerObj.minutesPerRound = Number(minutesPerRound);
+      timerObj.roundsTotal = Number(roundsTotal);
+      timerObj.secondsRest = Number(secondsRest);
+      timerObj.minutesRest = Number(minutesRest);
+      timerObj.description = unsanitizeDescription(description);
+      timerObj.C = timerComponents[type];
+      // Use numeric ids for the Map.
+      timersM.set(timerId, timerObj);
+    });
   }
 
   // use a map
@@ -47,20 +80,26 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
   const [activeTimer, setActiveTimer] = useState(null);
   // States "ready", "running", "stopped", "reset
   const [mode, setMode] = useState("stopped");
+
   /**
    * @param {Map} tmrsMap map of timers to update the URL with.
    */
   function updateTimersUrlParam(tmrsMap) {
-    // Get existing query string from the URL.
-    // const searchParams = new URLSearchParams(location.search);
-    // Update the query string to match the updated timers.
-    // searchParams.set("tmrs", getTimersUrlParam(tmrsMap));
-    // Update the URL.
-    const tmrs = getTimersUrlParam(tmrsMap);
-    window.location.hash = `#${tmrs}`;
-    setTmrsParam(tmrs);
-    // navigate( `edit/${getTimersUrlParam(tmrsMap)}`);
+    if (!tmrsMap || !tmrsMap.size) {
+      return;
+    }
+    let tmrs = getTimersUrlParam(tmrsMap);
+    // Compress the URL param.
+    tmrs = shortenTimerPropVal(tmrs);
+    setTmrsParam( '#' + tmrs);
   }
+  useEffect(() => {
+    updateTimersUrlParam(timersMap);
+  });
+  // Update the URL to match the tmrsParam.
+  useEffect(() => {
+    window.location.hash = tmrsParam;
+  }, [tmrsParam, setTmrsParam]);
   /**
    * @param {Object} options
    * @param {Map} options.timersMap - for accessing timer directly by id.
@@ -151,6 +190,8 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     // Set the active timer if there isn't one already.
     (activeTimer && timersMap.get(activeTimer)) || resetActiveTimer();
     // Add the new time.
+    timer.timerId = makeTimerId();
+    timer.C = timerComponents[timer.type];
     newTimersMap.set(timer.timerId, timer);
     setTimersMap(newTimersMap);
     setWorkout({
@@ -163,12 +204,87 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     updateTimersUrlParam(newTimersMap);
   }
 
+  function makeTimerId() {
+    const idLength = 3;
+    let id = "";
+    // Make a random id.
+    for (let i = 0; i < idLength; i++) {
+      id += alphanumeric[Math.floor(Math.random() * alphanumeric.length)];
+    }
+    // If the id is already in use, try again.
+    if (timersMap.has(id)) {
+      return makeTimerId();
+    } else {
+      return id;
+    }
+  }
+
   // Get a timers URL param from the timers Map.
   function getTimersUrlParam(newTmrsMap) {
-    // Need to convert the Map to an object to be able to stringify it.
-    const timersObj = Object.fromEntries(newTmrsMap);
-    const timersUrl = encodeURIComponent(JSON.stringify(timersObj));
-    return `${timersUrl}`;
+    // If no timers, return empty string.
+    let paramParts = "";
+    for (let [, timer] of newTmrsMap.entries()) {
+      // ***Important*** need to maintain exact order of properties for saving/restoring timers to/from URL.
+      const [
+        timerId,
+        type,
+        status,
+        secondsPerRound,
+        minutesPerRound,
+        roundsTotal,
+        secondsRest,
+        minutesRest,
+        description
+      ] = Object.values(timer);
+      paramParts +=
+        timerId +
+        "," +
+        type +
+        "," +
+        status +
+        "," +
+        secondsPerRound +
+        "," +
+        minutesPerRound +
+        "," +
+        roundsTotal +
+        "," +
+        secondsRest +
+        "," +
+        minutesRest +
+        "," +
+        sanitizeDescription(description) +
+        "&"
+        ;
+    }
+
+    paramParts = shortenTimerPropVal(paramParts);
+    return `${paramParts}`;
+  }
+
+
+  // Shorten a string by replacing the timer property or value with a shorter character.
+  function shortenTimerPropVal(str) {
+    for (let prop in timerValParamMap) {
+      str = str.replaceAll(prop, timerValParamMap[prop]);
+    }
+    return str;
+  }
+  // Expand a string by replacing the shorter character with the timer property or value.
+  function expandTimerPropVal(str) {
+    for (let prop in timerValParamMap) {
+      str = str.replaceAll(timerValParamMap[prop], prop);
+    }
+    return str;
+  }
+  // // Make the description safe for URL.
+  function sanitizeDescription(str) {
+    // make url safe, 
+    return encodeURIComponent(str);
+  }
+  // Decode the description.
+  function unsanitizeDescription(str) {
+    return decodeURIComponent(str);
   }
 
   // Reset the active timer to the first timer in the queue that isn't completed.

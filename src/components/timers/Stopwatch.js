@@ -36,8 +36,9 @@ const Stopwatch = (props) => {
       type={timerType}
       mins={minutesShown}
       secs={secondsShown}
-        isRoundTimer={false}
-        isRestTimer={false}
+      isRoundTimer={false}
+      isRestTimer={false}
+      description={props.description}
     />
   );
 };

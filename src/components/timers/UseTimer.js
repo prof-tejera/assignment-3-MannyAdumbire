@@ -1,3 +1,6 @@
+/**
+ * Custom hook to manage the state of timer components.
+ */
 import { useState, useRef, useEffect, useContext } from "react";
 import { WorkoutContext } from "../../WorkoutContext.js";
 import * as h from "../../utils/helpers.js";
@@ -9,13 +12,13 @@ export const useTimer = (timerId) => {
   // Get the timer object that matches the timerId.
   const timer = timers.get(timerId);
 
-  // Props that should cause component rerender.
+  // Timer logic Props that sometimes cause component rerender.
+  const [secondsPerRound] = useState(timer?.secondsPerRound || 0);
+  const [minutesPerRound] = useState(timer?.minutesPerRound || 0);
   const [roundNumber, setRoundNumber] = useState(1);
   const [roundsTotal] = useState(timer?.roundsTotal || 1);
-  const [minutesPerRound] = useState(timer?.minutesPerRound || 0);
-  const [secondsPerRound] = useState(timer?.secondsPerRound || 0);
-  const [minutesRest] = useState(timer?.minutesRest || 0);
   const [secondsRest] = useState(timer?.secondsRest || 0);
+  const [minutesRest] = useState(timer?.minutesRest || 0);
   const [secsLeft, setSecsLeft] = useState(
     h.secsFromMinsSecs(minutesPerRound, secondsPerRound) || 0
   );
@@ -142,11 +145,11 @@ export const useTimer = (timerId) => {
     mode,
     workoutFns,
     roundNumber,
-    minutesPerRound,
     secondsPerRound,
-    minutesRest,
-    secondsRest,
+    minutesPerRound,
     roundsTotal,
+    secondsRest,
+    minutesRest,
     timerId,
   ]);
 

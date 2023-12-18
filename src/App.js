@@ -74,8 +74,8 @@ const App = () => {
         <WorkoutContextWrap initialTmrsParam={tmrs}>
         <Nav />
           <Routes>
-            <Route path="/workout/:tmrs" element={<WorkoutView />} />
-            <Route path="/edit/:tmrs" element={<WorkoutEdit />} />
+            <Route path="/workout/" element={<WorkoutView />} />
+            <Route path="/edit/" element={<WorkoutEdit />} />
             <Route path="/docs" element={<DocumentationView />} />
             <Route path="*" element={<WorkoutEdit />} />
           </Routes>

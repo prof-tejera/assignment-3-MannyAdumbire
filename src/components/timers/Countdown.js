@@ -27,6 +27,7 @@ const CountDown = (props) => {
       secs={secondsShown}
       isRoundTimer={false}
       isRestTimer={false}
+      description={props.description}
     />
   );
 };

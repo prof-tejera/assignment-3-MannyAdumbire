@@ -13,6 +13,11 @@ const TimerDisplayWrap = styled.div`
   span {
     font-size: 1rem;
     padding: 0rem 0.2rem;
+    &.description {
+      font-size: small;
+      color: gray;
+      font-weight: normal;
+    }
   }
   ${(props) =>
     props.status === "completed" &&
@@ -61,6 +66,7 @@ const TimerDisplay = (props) => {
             "resting" ? ": REST " : ": ROUND ")) +
               `${props.round} / ${props.roundsTotal}`}
       </small>
+      <span class="description">{props.description}</span>
     </TimerDisplayWrap>
   );
 };

@@ -3,7 +3,7 @@ import styled from "styled-components";
 import * as ws from "../../WorkoutStyles";
 
 const TimerInputs = styled(ws.Container)`
-  display:flex;
+  display: flex;
   flex-direction: column-reverse;
   cursor: pointer;
 `;
@@ -13,8 +13,13 @@ const TimerInput = ({ label, value, onChangeFn, disabled, ...props }) => {
   const id = "timer-input-" + safeLabel;
 
   function handleChange(e) {
-    onChangeFn(parseInt(e.target.value));
+    if (props.type === "number") {
+      onChangeFn(parseInt(e.target.value));
+    } else {
+      onChangeFn(e.target.value);
+    }
   }
+  // TODO fix onchange vs on Input, maxlength, minlength, size
   return (
     <TimerInputs disabled={disabled}>
       <ws.TimerInputBox
@@ -25,7 +30,7 @@ const TimerInput = ({ label, value, onChangeFn, disabled, ...props }) => {
         name={id}
         id={id}
         value={value || ""}
-        onChange={handleChange}
+        onChange={onChangeFn ? handleChange : undefined}
       />
       <ws.TimerLabel disabled={disabled} htmlFor={id}>
         {label}

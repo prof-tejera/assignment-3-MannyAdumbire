@@ -1,4 +1,4 @@
-import React, {   useContext, useState} from "react";
+import React, { useContext, useState } from "react";
 import styled from "styled-components";
 import * as ws from "../WorkoutStyles.js";
 
@@ -12,31 +12,17 @@ import TimerTypeSelect from "../components/generic/TimerTypeSelect.js";
 import Button from "../components/generic/Button.js";
 import TimersPanel from "../components/generic/TimersPanel.js";
 
-// Components for the different types of timers.
-import Stopwatch from "../components/timers/Stopwatch.js";
-import Countdown from "../components/timers/Countdown.js";
-import XY from "../components/timers/XY.js";
-import Tabata from "../components/timers/Tabata.js";
-
 const WorkoutEditWrap = styled(ws.Container)`
   display: flex;
   flex-direction: column;
   flex-grow: 0;
 `;
 
-const timerComponents = {
-  Stopwatch: Stopwatch,
-  Countdown: Countdown,
-  XY: XY,
-  Tabata: Tabata,
-};
-
 const WorkoutEdit = () => {
-  const {workout,  timers, workoutFns} =
-    useContext(WorkoutContext);
+  const { workout, timers, workoutFns } = useContext(WorkoutContext);
 
   // Stop running timers to edit them.
-  if( "running" === workout.options.mode){
+  if ("running" === workout.options.mode) {
     workoutFns.setMode("stopped");
   }
   // Start with empty to display only the times.
@@ -45,9 +31,10 @@ const WorkoutEdit = () => {
   // Track what's currently entered in the timer inputs.
   const [minutesPerRound, setMinutesPerRound] = useState(0);
   const [secondsPerRound, setSecondsPerRound] = useState(0);
+  const [roundsTotal, setRoundsTotal] = useState(1);
   const [minutesRest, setMinutesRest] = useState(0);
   const [secondsRest, setSecondsRest] = useState(0);
-  const [roundsTotal, setRoundsTotal] = useState(1);
+  const [description, setDescription] = useState("");
 
   // If this is less than 0, then show/hide some inputs.
   const timeInputCheck =
@@ -59,19 +46,18 @@ const WorkoutEdit = () => {
     const roundsTimers = ["xy", "tabata"];
     if (timerType) {
       const type = timerType.toLowerCase();
-      workoutFns.addTimer(
-        {
-        timerId: Date.now(),
-        C: timerComponents[timerType],
+      // ***Important*** need to maintain exact order of properties for saving/restoring timers to/from URL.
+      workoutFns.addTimer({
+        timerId: null,
         type: type,
         status: "stopped",
-        minutesPerRound: minutesPerRound,
-        secondsPerRound: secondsPerRound,
-        minutesRest: restTimers.includes(type) ? minutesRest : 0,
-        secondsRest: restTimers.includes(type) ? secondsRest : 0,
+        secondsPerRound: secondsPerRound || 0,
+        minutesPerRound: minutesPerRound || 0,
         roundsTotal: roundsTimers.includes(type) ? roundsTotal : 1,
-      }
-      );
+        secondsRest: restTimers.includes(type) ? secondsRest : 0,
+        minutesRest: restTimers.includes(type) ? minutesRest : 0,
+        description: description,
+      });
     } else {
       console.error(`Invalid timerType: ${timerType}`);
     }
@@ -87,19 +73,6 @@ const WorkoutEdit = () => {
   ];
   const timerInputs = [
     {
-      label: "Mins",
-      value: minutesPerRound,
-      // options: [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-      onChangeFn: setMinutesPerRound,
-      onClick: () => {
-        setMinutesPerRound((mins) => {
-          return (mins += 1);
-        });
-      },
-      type: "number",
-      min: "0",
-    },
-    {
       label: "Secs",
       value: secondsPerRound,
       // options: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
@@ -114,16 +87,28 @@ const WorkoutEdit = () => {
       type: "number",
     },
     {
-      label: "Rest(Mins)",
-      value: minutesRest,
-      // options: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-      onChangeFn: setMinutesRest,
-      disabled: timerType !== "Tabata",
-      min: "0",
-      type: "number",
+      label: "Mins",
+      value: minutesPerRound,
+      // options: [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
+      onChangeFn: setMinutesPerRound,
       onClick: () => {
-        setMinutesRest((mins) => {
+        setMinutesPerRound((mins) => {
           return (mins += 1);
+        });
+      },
+      type: "number",
+      min: "0",
+    },
+    {
+      label: "Rounds",
+      value: roundsTotal,
+      onChangeFn: setRoundsTotal,
+      disabled: ["Stopwatch", "Countdown"].includes(timerType),
+      type: "number",
+      min: "1",
+      onClick: () => {
+        setRoundsTotal((rounds) => {
+          return (rounds += 1);
         });
       },
     },
@@ -143,17 +128,27 @@ const WorkoutEdit = () => {
       },
     },
     {
-      label: "Rounds",
-      value: roundsTotal,
-      onChangeFn: setRoundsTotal,
-      disabled: ["Stopwatch", "Countdown"].includes(timerType),
+      label: "Rest(Mins)",
+      value: minutesRest,
+      // options: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
+      onChangeFn: setMinutesRest,
+      disabled: timerType !== "Tabata",
+      min: "0",
       type: "number",
-      min: "1",
       onClick: () => {
-        setRoundsTotal((rounds) => {
-          return (rounds += 1);
+        setMinutesRest((mins) => {
+          return (mins += 1);
         });
       },
+    },
+    {
+      label: "Description",
+      value: description,
+      onChangeFn: setDescription,
+      type: "text",
+      maxlength: "30",
+      minlength: "30",
+      size: "30"
     },
   ];
   return (
@@ -208,7 +203,7 @@ const WorkoutEdit = () => {
           />
         </ws.Container>
       )}
-      <TimersPanel timers={timers}  />
+      <TimersPanel timers={timers} />
     </WorkoutEditWrap>
   );
 };
