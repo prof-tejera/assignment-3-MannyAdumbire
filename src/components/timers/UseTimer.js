@@ -32,6 +32,13 @@ export const useTimer = (timerId) => {
   // The Intervals that progress the timer.
   const roundIntervalRef = useRef(null);
 
+  // Update the total time when secsLeft changes.
+  useEffect(() => {
+    if ( "running" === options.mode) {
+      workoutFns.getTotalTime(true);
+    }
+  }, [secsLeft, workoutFns, options.mode]);
+
   // Logic for rounds.
   useEffect(() => {
     function resetTimer() {

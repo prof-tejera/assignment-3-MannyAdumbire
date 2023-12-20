@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import styled, { css } from "styled-components";
+import Timer from "../timers/Timer.js";
 import * as ws from "../../WorkoutStyles";
 
 // Contexts.
@@ -46,7 +47,7 @@ const TimersPanel = ({ timers, ...props }) => {
               onClick={() => workoutFns.removeTimer(timer.timerId)}
             />
           )}
-          <timer.C key={`timer-${id}`} {...timer} />
+          <Timer key={`timer-${id}`} {...timer} />
         </ws.Container>
       ))}
     </StyledTimers>

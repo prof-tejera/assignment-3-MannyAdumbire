@@ -1,23 +1,11 @@
 // WorkoutContext.js
 import React, { useEffect, useState } from "react";
-// Components for the different types of timers.
-import Stopwatch from "./components/timers/Stopwatch.js";
-import Countdown from "./components/timers/Countdown.js";
-import XY from "./components/timers/XY.js";
-import Tabata from "./components/timers/Tabata.js";
 
 export const WorkoutContext = React.createContext();
 
 // Alphanumeric characters to use for the timer property or value.
 const alphanumeric =
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-const timerComponents = {
-  stopwatch: Stopwatch,
-  countdown: Countdown,
-  xy: XY,
-  tabata: Tabata,
-};
 
 // To keep url short, map each timer property or string value to shorter character.
 const timerValParamMap = {
@@ -43,7 +31,7 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     // Decompress the URL param.
     workoutStr = expandTimerPropVal(workoutStr);
     let tmrsP = workoutStr.split("&");
-    tmrsP.forEach((tmrP)=>{
+    tmrsP.forEach((tmrP) => {
       if (!tmrP) {
         return;
       }
@@ -68,7 +56,6 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
       timerObj.secondsRest = Number(secondsRest);
       timerObj.minutesRest = Number(minutesRest);
       timerObj.description = unsanitizeDescription(description);
-      timerObj.C = timerComponents[type];
       // Use numeric ids for the Map.
       timersM.set(timerId, timerObj);
     });
@@ -80,6 +67,8 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
   const [activeTimer, setActiveTimer] = useState(null);
   // States "ready", "running", "stopped", "reset
   const [mode, setMode] = useState("stopped");
+  // The max total time of all timers.
+  const [totalTime, setTotalTime] = useState(0);
 
   /**
    * @param {Map} tmrsMap map of timers to update the URL with.
@@ -91,7 +80,7 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     let tmrs = getTimersUrlParam(tmrsMap);
     // Compress the URL param.
     tmrs = shortenTimerPropVal(tmrs);
-    setTmrsParam( '#' + tmrs);
+    setTmrsParam("#" + tmrs);
   }
   useEffect(() => {
     updateTimersUrlParam(timersMap);
@@ -121,7 +110,13 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     options: options,
     timers: timersMap,
   });
-  const workoutFns = { addTimer, removeTimer, nextTimer, setMode };
+  const workoutFns = {
+    addTimer,
+    removeTimer,
+    nextTimer,
+    setMode,
+    getTotalTime,
+  };
 
   const workoutProps = {
     workout,
@@ -191,7 +186,6 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     (activeTimer && timersMap.get(activeTimer)) || resetActiveTimer();
     // Add the new time.
     timer.timerId = makeTimerId();
-    timer.C = timerComponents[timer.type];
     newTimersMap.set(timer.timerId, timer);
     setTimersMap(newTimersMap);
     setWorkout({
@@ -234,7 +228,7 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
         roundsTotal,
         secondsRest,
         minutesRest,
-        description
+        description,
       ] = Object.values(timer);
       paramParts +=
         timerId +
@@ -254,14 +248,12 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
         minutesRest +
         "," +
         sanitizeDescription(description) +
-        "&"
-        ;
+        "&";
     }
 
     paramParts = shortenTimerPropVal(paramParts);
     return `${paramParts}`;
   }
-
 
   // Shorten a string by replacing the timer property or value with a shorter character.
   function shortenTimerPropVal(str) {
@@ -279,7 +271,7 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
   }
   // // Make the description safe for URL.
   function sanitizeDescription(str) {
-    // make url safe, 
+    // make url safe,
     return encodeURIComponent(str);
   }
   // Decode the description.
@@ -297,22 +289,43 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     }
   }
 
-  // eslint-disable-next-line no-unused-vars
-  function getRemainingTime() {
-    // Get the total time for all timers that aren't completed.
+  /**
+   * Calculate totals for the timers.
+   *
+   * @param {boolean} subtractElapsed If true, only add up the time for timers that have not yet completed.
+   * @returns
+   */
+  function getTotalTime(subtractElapsed = false) {
+    // Loop through the timers and add up the total time.
+    let total = 0;
+    const timersIterator = timersMap.entries();
+    for (let [, value] of timersIterator) {
+      total += value.roundsTotal * (
+        value.minutesPerRound * 60 +
+          value.secondsPerRound +
+          value.minutesRest * 60 +
+          value.secondsRest
+      );
+    }
+    return total;
+  }
+  function getTotalTimeLeft() {
     // Loop through the timers and add up the total time.
     let total = 0;
     const timersIterator = timersMap.entries();
     for (let [, value] of timersIterator) {
       if (value.status !== "completed") {
         total +=
-          (value.minutesPerRound * 60 + value.secondsPerRound) *
-            value.roundsTotal +
-          (value.minutesRest * 60 + value.secondsRest) * value.roundsTotal;
+          value.roundsTotal *
+          (value.minutesPerRound * 60 +
+            value.secondsPerRound +
+            value.minutesRest * 60 +
+            value.secondsRest);
       }
     }
     return total;
   }
+
   // Move to the next timer.
   function nextTimer() {
     if (activeTimer === null || timersMap.size === 0) {

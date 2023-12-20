@@ -199,7 +199,7 @@ const WorkoutEdit = () => {
           <span style={{ fontSize: "1rem" }}>Add {timerType}</span>
           <TimerTotalDisplay
             title="Total Workout Time: "
-            seconds={workout.options.secondsTotal}
+            seconds={workoutFns.getTotalTime()}
           />
         </ws.Container>
       )}

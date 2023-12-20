@@ -2,9 +2,10 @@
 /**
  * This component is used to display the timer stamp
  */
-import React from "react";
+import React, {useContext} from "react";
 import styled from "styled-components";
 import * as h from "../../utils/helpers";
+import { WorkoutContext } from "../../WorkoutContext.js";
 
 
 const TimerTotal = styled.div`
@@ -26,8 +27,10 @@ const Text = styled.p`
     padding: 0;
 `;
 
+
 //className="timer-display-time"
 const TimerTotalDisplay = (props) => {
+    const { workoutFns } = useContext(WorkoutContext);
     const [ mins, secs ] = h.minsSecsFromSecs(props.seconds)
     return (
       <TimerTotal >
