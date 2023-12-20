@@ -66,7 +66,7 @@ const TimerDisplay = (props) => {
             "resting" ? ": REST " : ": ROUND ")) +
               `${props.round} / ${props.roundsTotal}`}
       </small>
-      <span class="description">{props.description}</span>
+      <span className="description">{props.description}</span>
     </TimerDisplayWrap>
   );
 };

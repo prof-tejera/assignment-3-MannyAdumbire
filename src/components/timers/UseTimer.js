@@ -7,7 +7,8 @@ import * as h from "../../utils/helpers.js";
 
 // Custom hook to manage the state of timer components.
 export const useTimer = (timerId) => {
-  const { timers, mode, workoutFns, options } = useContext(WorkoutContext);
+  const { timers, mode, workoutFns, options } =
+    useContext(WorkoutContext);
 
   // Get the timer object that matches the timerId.
   const timer = timers.get(timerId);
@@ -16,10 +17,13 @@ export const useTimer = (timerId) => {
   const [secondsPerRound] = useState(timer?.secondsPerRound || 0);
   const [minutesPerRound] = useState(timer?.minutesPerRound || 0);
   const [roundNumber, setRoundNumber] = useState(1);
+  // TODO pull from local storage.
   const [roundsTotal] = useState(timer?.roundsTotal || 1);
   const [secondsRest] = useState(timer?.secondsRest || 0);
   const [minutesRest] = useState(timer?.minutesRest || 0);
-  const [secsLeft, setSecsLeft] = useState(
+  // The time left in the current round in seconds
+  // TODO pull from local storage.
+  const [secsLeftRound, setSecsLeftRound] = useState(
     h.secsFromMinsSecs(minutesPerRound, secondsPerRound) || 0
   );
 
@@ -27,22 +31,39 @@ export const useTimer = (timerId) => {
    * Props that shouldn't cause rerender.
    */
   // Internal, high resolution, state of the timer.
-  const msLeft = useRef(secsLeft * 1000 || 0);
+  const msLeft = useRef(secsLeftRound * 1000 || 0);
 
   // The Intervals that progress the timer.
   const roundIntervalRef = useRef(null);
 
-  // Update the total time when secsLeft changes.
+  // update the matched timer object when timer state changes.
   useEffect(() => {
-    if ( "running" === options.mode) {
-      workoutFns.getTotalTime(true);
+    if (timers.get(timerId)) {
+      if (
+        "running" === options.mode ||
+        !timer.roundNumber ||
+        !timer.secsLeftRound
+      ) {
+        timer.roundNumber = roundNumber;
+        timer.secsLeftRound = secsLeftRound;
+      }
     }
-  }, [secsLeft, workoutFns, options.mode]);
+  }, [timer, timers, timerId, secsLeftRound, options, roundNumber]);
+
+  // Recalculate the total time left.
+  useEffect(() => {
+    if ("running" === timer.status) {
+      workoutFns.updateTotalTimeLeft();
+    }
+  }, [secsLeftRound, workoutFns, timer]);
 
   // Logic for rounds.
   useEffect(() => {
+    // Reset timer to initial state.
     function resetTimer() {
-      setSecsLeft(h.secsFromMinsSecs(minutesPerRound, secondsPerRound) || 0);
+      setSecsLeftRound(
+        h.secsFromMinsSecs(minutesPerRound, secondsPerRound) || 0
+      );
       msLeft.current = h.msFromMinsSecs(minutesPerRound, secondsPerRound);
       setRoundNumber(1);
     }
@@ -91,19 +112,20 @@ export const useTimer = (timerId) => {
               if (msLeft.current > 0) {
                 // Only cause a rerender on the update frequency, and on the last "tick".
                 if (msLeft.current % msUpdateFrequency === 0) {
-                  setSecsLeft(msLeft.current / 1000);
+                  setSecsLeftRound(msLeft.current / 1000);
                 }
               } else {
                 // The timer has run out.
                 if (msLeft.current === 0) {
-                  setSecsLeft(0);
+                  setSecsLeftRound(0);
                 }
                 // Are there still rounds left?
                 if (roundNumber <= roundsTotal) {
                   const isLastRound = roundNumber === roundsTotal;
                   // only rest if we are not already resting & there is a rest period.
                   const isRestRound =
-                    "resting" !== timer.status && !!(minutesRest || secondsRest);
+                    "resting" !== timer.status &&
+                    !!(minutesRest || secondsRest);
                   // Is there a rest period or this the last round of tabata.
                   if (
                     (isRestRound && !isLastRound) ||
@@ -111,7 +133,9 @@ export const useTimer = (timerId) => {
                   ) {
                     // Initiate the rest period.
                     timer.status = "resting";
-                    setSecsLeft(h.secsFromMinsSecs(minutesRest, secondsRest));
+                    setSecsLeftRound(
+                      h.secsFromMinsSecs(minutesRest, secondsRest)
+                    );
                     msLeft.current = h.msFromMinsSecs(minutesRest, secondsRest);
                     return;
                   } else if (!isLastRound && !isRestRound) {
@@ -162,7 +186,7 @@ export const useTimer = (timerId) => {
 
   return {
     status: timer.status,
-    secsLeft: secsLeft,
+    secsLeftRound: secsLeftRound,
     isrunning: options.isRunning,
     roundNumber: roundNumber,
   };

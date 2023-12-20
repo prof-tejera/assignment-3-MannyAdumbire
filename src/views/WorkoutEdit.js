@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import * as ws from "../WorkoutStyles.js";
 
@@ -19,7 +19,7 @@ const WorkoutEditWrap = styled(ws.Container)`
 `;
 
 const WorkoutEdit = () => {
-  const { workout, timers, workoutFns } = useContext(WorkoutContext);
+  const { workout, timers, workoutFns} = useContext(WorkoutContext);
 
   // Stop running timers to edit them.
   if ("running" === workout.options.mode) {
@@ -40,6 +40,9 @@ const WorkoutEdit = () => {
   const timeInputCheck =
     secondsPerRound + minutesPerRound + secondsRest + minutesRest;
 
+    useEffect(() => {
+      workoutFns.updateTotalTime();
+    }, [workoutFns, timers]);
   // add a new timer the user's input values to the queue.
   function AddTimer() {
     const restTimers = ["tabata"];
@@ -199,7 +202,7 @@ const WorkoutEdit = () => {
           <span style={{ fontSize: "1rem" }}>Add {timerType}</span>
           <TimerTotalDisplay
             title="Total Workout Time: "
-            seconds={workoutFns.getTotalTime()}
+            subtractElapsed={false}
           />
         </ws.Container>
       )}

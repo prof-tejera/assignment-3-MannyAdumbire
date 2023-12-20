@@ -55,7 +55,7 @@ const WorkoutView = (children) => {
           <Button key={`btn-${idx}`} {...btn} />
         ))}
       </ws.Container>
-      <TimerTotalDisplay title="Time Left: " seconds={workoutFns.getTotalTime(true)} />
+      <TimerTotalDisplay title="Time Left: " subtractElapsed={true} />
       <TimersPanel timers={timers} />
     </Timers>
   );

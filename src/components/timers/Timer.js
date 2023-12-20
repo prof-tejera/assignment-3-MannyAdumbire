@@ -7,12 +7,13 @@ const timerType = "tabata";
 
 const restTimers = ["tabata"];
 const roundsTimers = ["xy", "tabata"];
+
 const Timer = (props) => {
   // The displayed amount of time left in minutes & seconds.
   const [minutesShown, setMinutesShown] = useState("00");
   const [secondsShown, setSecondsShown] = useState("00");
 
-  const { status, secsLeft, roundNumber } = useTimer(props.timerId);
+  const { status, secsLeftRound, roundNumber } = useTimer(props.timerId);
 
   const isRoundTimer = roundsTimers.includes(props.type);
   const isRestTimer = restTimers.includes(props.type);
@@ -27,8 +28,8 @@ const Timer = (props) => {
       minsPart = h.minsPartFromSecs(getPassedSeconds());
     } else {
       // Other timers show time left.
-      secsPart = h.secsPartFromSecs(secsLeft);
-      minsPart = h.minsPartFromSecs(secsLeft);
+      secsPart = h.secsPartFromSecs(secsLeftRound);
+      minsPart = h.minsPartFromSecs(secsLeftRound);
     }
     // Update displyed time left for round.
     setSecondsShown(h.formatSeconds(secsPart));
@@ -39,22 +40,22 @@ const Timer = (props) => {
         props.minutesPerRound,
         props.secondsPerRound
       );
-      return totalSecsPerRound - secsLeft;
+      return totalSecsPerRound - secsLeftRound;
     }
-  }, [secsLeft, props.minutesPerRound, props.secondsPerRound, props.type]);
+  }, [secsLeftRound, props.minutesPerRound, props.secondsPerRound, props.type]);
 
   return (
     <TimerDisplay
       id={props.timerId}
-      type={timerType}
+      type={props.type}
       status={status}
       mins={minutesShown}
       secs={secondsShown}
       round={roundNumber}
       roundsTotal={props.roundsTotal}
+      description={props.description}
       isRoundTimer={isRoundTimer}
       isRestTimer={isRestTimer}
-      description={props.description}
     />
   );
 };
