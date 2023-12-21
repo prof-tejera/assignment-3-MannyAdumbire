@@ -10,6 +10,9 @@ const TimerDisplayWrap = styled.div`
   justify-content: flex-start;
   align-items: center;
   padding-left: 0.2rem;
+  :hover {
+    border: solid 1px white;
+  }
   span {
     font-size: 1rem;
     padding: 0rem 0.2rem;
@@ -66,7 +69,7 @@ const TimerDisplay = (props) => {
             "resting" ? ": REST " : ": ROUND ")) +
               `${props.round} / ${props.roundsTotal}`}
       </small>
-      <span className="description">{props.description}</span>
+      <span className="description">{props.description}{props.id}</span>
     </TimerDisplayWrap>
   );
 };

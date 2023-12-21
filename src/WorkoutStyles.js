@@ -3,6 +3,7 @@
  */
 import styled, { css } from "styled-components";
 
+const buttonHoverColor = "silver";
 const textColor = "wheat";
 const containerStyle = `
     color: ${textColor};
@@ -73,7 +74,7 @@ export const Button = styled.div`
     css`
       &:hover {
         border-color: white;
-        background-color: ${props.hover};
+        background-color: ${props.hover || buttonHoverColor};
         color: black;
       }
     `}
@@ -146,7 +147,7 @@ export const Wrap = styled.label`
 export const Container = styled.div`
   display: flex;
   justify-content: flex-start;
-  align-items: baseline;
+  align-items: center;
   flex-grow: 0;
   & p {
     padding-left: 0.2rem;

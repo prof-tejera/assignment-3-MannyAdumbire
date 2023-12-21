@@ -11,6 +11,7 @@ import Button from "./Button.js";
 
 const StyledTimers = styled(ws.Container)`
   flex-direction: column;
+  align-items: flex-start;
   ${(props) =>
     props.status === "completed" &&
     css`
@@ -19,6 +20,13 @@ const StyledTimers = styled(ws.Container)`
     `}
 `;
 
+const SwapButton = styled(ws.Button)`
+  padding: 0rem;
+  margin: 0rem;
+  border: none;
+  width: 16px;
+  height: 16px;
+`;
 const TimersPanel = ({ timers, ...props }) => {
   const { workoutFns, options } = useContext(WorkoutContext);
 
@@ -38,14 +46,39 @@ const TimersPanel = ({ timers, ...props }) => {
         <ws.Container status={timer.status} key={`button-${id}`} {...props}>
           {/* add remove when not timer "running" */}
           {"running" !== options.mode && (
-            <Button
-              type="remove"
-              label=""
-              title="Remove Timer"
-              img="❌"
-              hover="lightcoral"
-              onClick={() => workoutFns.removeTimer(timer.timerId)}
-            />
+            <ws.Container>
+              <Button
+                type="remove"
+                label=""
+                title="Remove Timer"
+                img="❌"
+                hover="lightcoral"
+                onClick={() => workoutFns.removeTimer(timer.timerId)}
+              />
+            </ws.Container>
+          )}
+          {"running" !== options.mode && "completed" !== timer.status && (
+            <ws.Container style={{ flexDirection: "column" }}>
+              {timer.isFirst ||
+                (!timer.isPrevCompleted && (
+                  <SwapButton
+                    type="swapprev"
+                    label=""
+                    title="Swap Previous"
+                    img="⤴️"
+                    onClick={() => workoutFns.swapTimers(timer.timerId, false)}
+                  />
+                ))}
+              {!timer.isLast && (
+                <SwapButton
+                  type="swapnext"
+                  label=""
+                  title="Swap Next"
+                  img="⤵️"
+                  onClick={() => workoutFns.swapTimers(timer.timerId, true)}
+                />
+              )}
+            </ws.Container>
           )}
           <Timer key={`timer-${id}`} {...timer} />
         </ws.Container>

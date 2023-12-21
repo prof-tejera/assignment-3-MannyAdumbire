@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import * as ws from "../WorkoutStyles.js";
 
@@ -18,15 +18,17 @@ const WorkoutEditWrap = styled(ws.Container)`
   flex-grow: 0;
 `;
 
+const restTimers = ["tabata"];
+const roundsTimers = ["xy", "tabata"];
 const WorkoutEdit = () => {
-  const { workout, timers, workoutFns} = useContext(WorkoutContext);
+  const { timers, workoutFns } = useContext(WorkoutContext);
 
-  // Stop running timers to edit them.
-  if ("running" === workout.options.mode) {
-    workoutFns.setMode("stopped");
-  }
+  // Reset the workout to clear the timers.
+  useEffect(() => {
+    workoutFns.setMode("reset");
+  }, []);
   // Start with empty to display only the times.
-  const [timerType, setTimerType] = useState("");
+  const timerType = useRef("");
 
   // Track what's currently entered in the timer inputs.
   const [minutesPerRound, setMinutesPerRound] = useState(0);
@@ -36,19 +38,13 @@ const WorkoutEdit = () => {
   const [secondsRest, setSecondsRest] = useState(0);
   const [description, setDescription] = useState("");
 
-  // If this is less than 0, then show/hide some inputs.
-  const timeInputCheck =
-    secondsPerRound + minutesPerRound + secondsRest + minutesRest;
-
-    useEffect(() => {
-      workoutFns.updateTotalTime();
-    }, [workoutFns, timers]);
+  useEffect(() => {
+    workoutFns.updateTotalTime();
+  }, [workoutFns, timers]);
   // add a new timer the user's input values to the queue.
-  function AddTimer() {
-    const restTimers = ["tabata"];
-    const roundsTimers = ["xy", "tabata"];
+  function addTimer() {
     if (timerType) {
-      const type = timerType.toLowerCase();
+      const type = timerType.current.toLowerCase();
       // ***Important*** need to maintain exact order of properties for saving/restoring timers to/from URL.
       workoutFns.addTimer({
         timerId: null,
@@ -65,84 +61,77 @@ const WorkoutEdit = () => {
       console.error(`Invalid timerType: ${timerType}`);
     }
   }
+  let timerOptions = [];
+  if (secondsPerRound || minutesPerRound) {
+    // Determine which timer types are available based on the current input values.
+    timerOptions.push("Stopwatch", "Countdown", "XY", "Tabata");
+  } else if (secondsRest || minutesRest) {
+    timerOptions.push("Tabata");
+  }
+
   const timerTypeOptions = [
     {
       label: "Timer Type",
-      value: timerType,
-      options: ["Stopwatch", "Countdown", "XY", "Tabata"],
-      onChangeFn: setTimerType,
+      value: timerType.current,
+      options: timerOptions,
+      onChangeFn: (type) => {
+        timerType.current = type.toLowerCase();
+        addTimer();
+      },
       type: "select",
     },
   ];
   const timerInputs = [
     {
-      label: "Secs",
-      value: secondsPerRound,
-      // options: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-      onChangeFn: setSecondsPerRound,
-      min: "0",
-      max: "59",
-      onClick: () => {
-        setSecondsPerRound((secs) => {
-          return (secs += 5);
-        });
-      },
-      type: "number",
-    },
-    {
       label: "Mins",
       value: minutesPerRound,
       // options: [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
       onChangeFn: setMinutesPerRound,
-      onClick: () => {
-        setMinutesPerRound((mins) => {
-          return (mins += 1);
-        });
-      },
       type: "number",
       min: "0",
     },
+    {
+      label: "Secs",
+      value: secondsPerRound,
+      // options: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
+      onChangeFn: setSecondsPerRound,
+      onClick: () => {
+        setSecondsPerRound((secs) => {
+          return (secs += 1);
+        });
+      },
+      min: "0",
+      max: "59",
+      type: "number",
+    },
+
     {
       label: "Rounds",
       value: roundsTotal,
       onChangeFn: setRoundsTotal,
-      disabled: ["Stopwatch", "Countdown"].includes(timerType),
+      disabled: ["Stopwatch", "Countdown"].includes(timerType.current),
       type: "number",
       min: "1",
-      onClick: () => {
-        setRoundsTotal((rounds) => {
-          return (rounds += 1);
-        });
-      },
-    },
-    {
-      label: "Rest(Secs)",
-      value: secondsRest,
-      // options: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-      onChangeFn: setSecondsRest,
-      disabled: timerType !== "Tabata",
-      min: "0",
-      max: "59",
-      type: "number",
-      onClick: () => {
-        setSecondsRest((secs) => {
-          return (secs += 5);
-        });
-      },
     },
     {
       label: "Rest(Mins)",
       value: minutesRest,
-      // options: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
       onChangeFn: setMinutesRest,
-      disabled: timerType !== "Tabata",
       min: "0",
       type: "number",
+    },
+    {
+      label: "Rest(Secs)",
+      value: secondsRest,
+      onChangeFn: setSecondsRest,
       onClick: () => {
-        setMinutesRest((mins) => {
-          return (mins += 1);
+        setSecondsRest((secs) => {
+          return (secs += 1);
         });
       },
+      min: "0",
+      max: "59",
+      type: "number",
     },
     {
       label: "Description",
@@ -151,20 +140,35 @@ const WorkoutEdit = () => {
       type: "text",
       maxlength: "30",
       minlength: "30",
-      size: "30"
+      size: "30",
     },
   ];
   return (
     <WorkoutEditWrap>
-      <ws.Container style={{ flexDirection: "column" }}>
-        {timerType === "" && <strong>Choose A Timer</strong>}
+      <ws.Container>
+        {!timerOptions.length ? <strong> Set timer length 👉 </strong> : ""}
+        {timerInputs.map((timer, idx) => (
+          <TimerInput
+            key={`option-${idx}`}
+            label={timer.label}
+            hover="silver"
+            value={timer.value}
+            onChangeFn={timer.onChangeFn}
+            disabled={timer.disabled}
+            {...timer}
+          />
+        ))}
+      </ws.Container>
+      <ws.Container style={{ flexDirection: "row" }}>
+        {timerOptions.length ? <strong> Add timer 👉 </strong> : ""}
         {timerTypeOptions.map((option, idx) => (
           <TimerTypeSelect
-            key={`option-${idx}`}
+            key={`option-${option.value}${idx}`}
             label={option.label}
             value={option.value}
             hover="silver"
-            selected={timerType === option.value}
+            hide={option.hide}
+            selected={timerType.current === option.value}
             onChangeFn={option.onChangeFn}
             disabled={option.disabled}
             options={option.options}
@@ -172,40 +176,7 @@ const WorkoutEdit = () => {
           />
         ))}
       </ws.Container>
-      <ws.Container>
-        {timerType &&
-          timerInputs.map((timer, idx) => (
-            <TimerInput
-              key={`option-${idx}`}
-              label={timer.label}
-              hover="silver"
-              value={timer.value}
-              onChangeFn={timer.onChangeFn}
-              disabled={timer.disabled}
-              {...timer}
-            />
-          ))}
-      </ws.Container>
-      {timerType && timeInputCheck > 0 && (
-        <ws.Container>
-          <Button
-            type="add"
-            id="add-timer"
-            label=""
-            title="Add Timer"
-            hover="lightgreen"
-            color="green"
-            disabled={timeInputCheck < 0}
-            img={timerType ? `＋` : ""}
-            onClick={AddTimer}
-          ></Button>
-          <span style={{ fontSize: "1rem" }}>Add {timerType}</span>
-          <TimerTotalDisplay
-            title="Total Workout Time: "
-            subtractElapsed={false}
-          />
-        </ws.Container>
-      )}
+      <TimerTotalDisplay title="Total Workout Time: " subtractElapsed={false} />
       <TimersPanel timers={timers} />
     </WorkoutEditWrap>
   );

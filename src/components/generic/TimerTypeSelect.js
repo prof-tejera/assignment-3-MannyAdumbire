@@ -6,18 +6,14 @@ const TimerType = styled(ws.Button)`
   &.selected {
     background-color: white;
   }
-  &:hover {
-    border: 2px solid white;
-  }
   ${(props) =>
     props.selected &&
     css`
       background-color: white;
       color: black;
     `}
-  &:hover {
-    background-color: white;
-    color: black;
+  :hover::before {
+    content:"＋";
   }
 `;
 const TimerOptionsSelect = ({
@@ -40,7 +36,7 @@ const TimerOptionsSelect = ({
       {options.map((optionValue, idx) => (
         <TimerType
           key={`option-${idx}`}
-          hover="white"
+          hover="lightgreen"
           onClick={handleChange}
           id={`${safeLabel}-${optionValue}`}
           {...(optionValue === selected && { selected: "" })}

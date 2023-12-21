@@ -3,10 +3,9 @@ import { useTimer } from "./UseTimer.js";
 import TimerDisplay from "../generic/TimerDisplay.js";
 import * as h from "../../utils/helpers.js";
 
-const timerType = "tabata";
-
 const restTimers = ["tabata"];
 const roundsTimers = ["xy", "tabata"];
+
 
 const Timer = (props) => {
   // The displayed amount of time left in minutes & seconds.
