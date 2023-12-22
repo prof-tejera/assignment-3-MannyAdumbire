@@ -1,4 +1,3 @@
-// WorkoutContext.js
 import React, { useEffect, useState, useRef } from "react";
 
 export const WorkoutContext = React.createContext();
@@ -69,8 +68,8 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
 
   // use a map to keep the same order of the timers.
   const [timersMap, setTimersMap] = useState(timersM || new Map());
-  // Id of the active timer.
-  const [activeTimer, setActiveTimer] = useState(null);
+  // Id of the active timer running.
+  const [activeTimer, setActiveTimer] = useState(false);
   // States "ready", "running", "stopped", "reset
   const [mode, setMode] = useState("reset");
   // The max total time of all timers.
@@ -90,6 +89,7 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     tmrs = shortenTimerPropVal(tmrs);
     setTmrsParam("#" + tmrs);
   }
+  // Recalculate relevant states & options whenever timersMap changes.
   useEffect(() => {
     updateTotalTime();
     updateTotalTimeLeft();
@@ -132,11 +132,11 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     totalTimeLeft: totalTimeLeft,
   });
   const workoutFns = {
+    setMode,
     addTimer,
     removeTimer,
     swapTimers,
     nextTimer,
-    setMode,
     updateTotalTime,
     updateTotalTimeLeft,
   };
@@ -173,6 +173,7 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
         if (mode === "reset") {
           timer.status = "reset";
         }
+        timer.isEditing = false;
       }
       setTimersMap(new Map(timersMap));
     }
@@ -213,14 +214,16 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTimer]);
 
-  // Logic to add a timer and update the total times.
+  // Logic to add( or edit) a timer and update the total times.
   function addTimer(timer) {
     const newTimersMap = new Map(timersMap);
     // Set the active timer if there isn't one already.
     (activeTimer && timersMap.get(activeTimer)) || resetActiveTimer();
-    // Add the new time.
-    timer.timerId = makeTimerId();
-    newTimersMap.set(timer.timerId, timer);
+    // Edit existing timer or add a new one.
+    const timerId = timer.timerId || makeTimerId();
+    timer.timerId = timerId;
+    newTimersMap.set(timerId, timer);
+    // Update the timers.
     setTimersMap(newTimersMap);
     setWorkout({
       ...workout,
@@ -421,7 +424,7 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     // swapTimerKey to replace.
     let keyToSwap = false;
     let lastTimer = false;
-    for (const [key, value] of iterator) {
+    for (const [key,] of iterator) {
       lastTimer = key;
     }
     // Can't move the first timer before itself or move the last timer forward.

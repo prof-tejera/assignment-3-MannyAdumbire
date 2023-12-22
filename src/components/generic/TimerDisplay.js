@@ -31,16 +31,24 @@ const TimerDisplayWrap = styled.div`
         text-decoration: line-through;
       }
     `}
+  ${(props) =>
+    ["running","resting"].includes(props.status)  &&
+    css`
+      & p,
+      & span {
+        font-size: 2rem;
+      }
+    `}
 `;
 
 const TimerDisplayTime = styled(ws.Container)`
   font-size: 1.5rem;
   color: gray;
   ${(props) =>
-    props.status === "running" &&
+    ["running","resting"].includes(props.status) &&
     css`
       color: lime;
-      font-size: xx-large;
+      font-size: 5rem;
     `}
   ${(props) =>
     props.status === "completed" &&
@@ -52,24 +60,23 @@ const TimerDisplayTime = styled(ws.Container)`
     props.status === "resting" &&
     css`
       color: yellow;
-      font-size: xx-large;
     `}
 `;
 
 const TimerDisplay = (props) => {
   return (
-    <TimerDisplayWrap>
+    <TimerDisplayWrap status={props.status}>
       <TimerDisplayTime status={props.status}>
         {props.mins}:{props.secs}
       </TimerDisplayTime>
       <p>{props.type} </p>
       <small>
         {props.isRoundTimer &&
-          ((props.status ===
-            "resting" ? ": REST " : ": ROUND ")) +
-              `${props.round} / ${props.roundsTotal}`}
+          (props.status === "resting" ? ": REST " : ": ROUND ") +
+            `${props.round} / ${props.roundsTotal}`}
       </small>
-      <span className="description">{props.description}{props.id}</span>
+      <span className="description">{props.description}</span>
+      <span>{props.id}</span>
     </TimerDisplayWrap>
   );
 };

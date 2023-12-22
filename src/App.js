@@ -1,15 +1,10 @@
-import {React,useContext, useEffect} from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Link
-} from "react-router-dom";
+import { React, useContext, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import styled from "styled-components";
 
 import DocumentationView from "./views/DocumentationView";
 import WorkoutView from "./views/WorkoutView";
-import WorkoutEdit from "./views/WorkoutEdit";
+import { WorkoutEdit } from "./views/WorkoutEdit";
 // Contexts.
 import { WorkoutContextWrap, WorkoutContext } from "./WorkoutContext";
 
@@ -43,23 +38,22 @@ const Container = styled.div`
   color: white;
 `;
 
+const GHPage = "assignment-3-MannyAdumbire";
 const Nav = () => {
-  const {  tmrsParam } =
-    useContext(WorkoutContext);
-    // Rerender when the tmrsParam changes.
-    useEffect(() => {
-    }, [tmrsParam]);
+  const { tmrsParam } = useContext(WorkoutContext);
+  // Rerender when the tmrsParam changes.
+  useEffect(() => {}, [tmrsParam]);
   return (
     <nav>
       <ul>
         <MenuButton>
-          <Link to={`/workout/${tmrsParam }`}>Workout</Link>
+          <Link to={`/${GHPage}/workout/${tmrsParam}`}>Workout</Link>
         </MenuButton>
         <MenuButton>
-          <Link to={`/edit/${tmrsParam }`}>Edit</Link>
+          <Link to={`/${GHPage}/edit/${tmrsParam}`}>Edit</Link>
         </MenuButton>
         <MenuButton>
-          <Link to="/docs">Documentation</Link>
+          <Link to={`/${GHPage}/docs/`}>Documentation</Link>
         </MenuButton>
       </ul>
     </nav>
@@ -72,11 +66,11 @@ const App = () => {
     <Container>
       <Router>
         <WorkoutContextWrap initialTmrsParam={tmrs}>
-        <Nav />
+          <Nav />
           <Routes>
-            <Route path="/workout/" element={<WorkoutView />} />
-            <Route path="/edit/" element={<WorkoutEdit />} />
-            <Route path="/docs" element={<DocumentationView />} />
+            <Route path={`/${GHPage}/workout/`} element={<WorkoutView />} />
+            <Route path={`/${GHPage}/edit/`} element={<WorkoutEdit />} />
+            <Route path={`/${GHPage}/docs/`} element={<DocumentationView />} />
             <Route path="*" element={<WorkoutEdit />} />
           </Routes>
         </WorkoutContextWrap>

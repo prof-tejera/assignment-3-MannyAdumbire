@@ -12,14 +12,30 @@ import Button from "./Button.js";
 const StyledTimers = styled(ws.Container)`
   flex-direction: column;
   align-items: flex-start;
+`;
+const TimerWrap = styled(ws.Container)`
+  cursor: pointer;
+  ${(props) =>
+    props.isEditing &&
+    css`
+      animation: blink 1s infinite;
+      border: solid 1px green;
+      ::after {
+      }
+    `}
   ${(props) =>
     props.status === "completed" &&
     css`
       color: grey;
       text-decoration: line-through;
+      display: none;
     `}
-`;
+  ${(props) => props.status === "running" && css``}
 
+  :hover::after {
+    content: "📝️ Edit";
+  }
+`;
 const SwapButton = styled(ws.Button)`
   padding: 0rem;
   margin: 0rem;
@@ -27,25 +43,38 @@ const SwapButton = styled(ws.Button)`
   width: 16px;
   height: 16px;
 `;
-const TimersPanel = ({ timers, ...props }) => {
-  const { workoutFns, options } = useContext(WorkoutContext);
-
-  // const completedTimers = timers.filter((timer) => timer.status === "completed");
-  // const notCompletedTimers = timers.filter(
-  //   (timer) => timer.status !== "completed"
-  // );
+const TimersPanel = ({
+  timers,
+  hideCancelBtn = false,
+  hideSwapBtn = false,
+  ...props
+}) => {
+  const { workoutFns } = useContext(WorkoutContext);
 
   const timersArr = Array.from(timers.entries());
   // Keep the current mode in sync with the parent component that passed it in.
   return (
     <StyledTimers {...props}>
-      {/* TODO - This causes error that is difficult to pinpoint */}
+      {/* TODO - Why empty fn error is so difficult to pinpoint ? */}
       {/* {(()=>{ */}
       {/* })} */}
       {timersArr.map(([id, timer]) => (
-        <ws.Container status={timer.status} key={`button-${id}`} {...props}>
+        <TimerWrap
+          status={timer.status}
+          key={`button-${id}`}
+          {...props}
+          onClick={() => {
+            props.editTimerIdSetter && props.editTimerIdSetter(timer.timerId);
+            // Set all the other timers to not editing.
+            timersArr.forEach(([id, timer]) => {
+              timer.isEditing = false;
+            }); // Added closing parenthesis here
+            timer.isEditing = true;
+          }}
+          isEditing={timer.isEditing}
+        >
           {/* add remove when not timer "running" */}
-          {"running" !== options.mode && (
+          {!hideCancelBtn && (
             <ws.Container>
               <Button
                 type="remove"
@@ -57,7 +86,7 @@ const TimersPanel = ({ timers, ...props }) => {
               />
             </ws.Container>
           )}
-          {"running" !== options.mode && "completed" !== timer.status && (
+          {!hideSwapBtn && (
             <ws.Container style={{ flexDirection: "column" }}>
               {timer.isFirst ||
                 (!timer.isPrevCompleted && (
@@ -65,6 +94,7 @@ const TimersPanel = ({ timers, ...props }) => {
                     type="swapprev"
                     label=""
                     title="Swap Previous"
+                    hover="silver"
                     img="⤴️"
                     onClick={() => workoutFns.swapTimers(timer.timerId, false)}
                   />
@@ -74,6 +104,7 @@ const TimersPanel = ({ timers, ...props }) => {
                   type="swapnext"
                   label=""
                   title="Swap Next"
+                  hover="silver"
                   img="⤵️"
                   onClick={() => workoutFns.swapTimers(timer.timerId, true)}
                 />
@@ -81,7 +112,7 @@ const TimersPanel = ({ timers, ...props }) => {
             </ws.Container>
           )}
           <Timer key={`timer-${id}`} {...timer} />
-        </ws.Container>
+        </TimerWrap>
       ))}
     </StyledTimers>
   );

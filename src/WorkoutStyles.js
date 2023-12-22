@@ -5,6 +5,18 @@ import styled, { css } from "styled-components";
 
 const buttonHoverColor = "silver";
 const textColor = "wheat";
+const blinkAnimation = css` 
+@keyframes blink {
+  0% {opacity: 1;}
+  20% {opacity: 0.9;}
+  40% {opacity: 0.8;}
+  60% {opacity: 0.7;}
+  80% {opacity: 0.6;}
+  90% {opacity: 0.5;}
+  100% {opacity: 0.2;}
+}
+
+  `;
 const containerStyle = `
     color: ${textColor};
     display: flex;
@@ -144,7 +156,9 @@ export const Wrap = styled.label`
   color: ${textColor};
 `;
 
+
 export const Container = styled.div`
+  ${blinkAnimation}
   display: flex;
   justify-content: flex-start;
   align-items: center;

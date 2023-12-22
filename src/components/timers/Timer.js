@@ -21,7 +21,7 @@ const Timer = (props) => {
   useEffect(() => {
     let secsPart;
     let minsPart;
-    if ("stopwatch" !== props.type) {
+    if ("stopwatch" === props.type) {
       // Stop watch shows passed time.
       secsPart = h.secsPartFromSecs(getPassedSeconds());
       minsPart = h.minsPartFromSecs(getPassedSeconds());

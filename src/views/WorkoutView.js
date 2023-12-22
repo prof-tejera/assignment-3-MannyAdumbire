@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useEffect, useContext } from "react";
 import styled from "styled-components";
 
 import * as ws from "../WorkoutStyles";
@@ -15,7 +15,13 @@ const Timers = styled.div`
 `;
 
 const WorkoutView = (children) => {
-  const { timers, options, workoutFns} = useContext(WorkoutContext);
+  const { timers, options, workoutFns } = useContext(WorkoutContext);
+
+  // Reset on load.
+  useEffect(() => {
+    handleReset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleReset = () => {
     workoutFns.setMode("reset");
@@ -56,7 +62,7 @@ const WorkoutView = (children) => {
         ))}
       </ws.Container>
       <TimerTotalDisplay title="Time Left: " subtractElapsed={true} />
-      <TimersPanel timers={timers} />
+      <TimersPanel hideCancelBtn={true} hideSwapBtn={true} timers={timers} />
     </Timers>
   );
 };
