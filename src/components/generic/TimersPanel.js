@@ -18,7 +18,6 @@ const TimerWrap = styled(ws.Container)`
   ${(props) =>
     props.isEditing &&
     css`
-      animation: blink 1s infinite;
       border: solid 1px green;
       ::after {
       }

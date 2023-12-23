@@ -22,7 +22,7 @@ const TimerInput = ({ label, value, onChangeFn, disabled, ...props }) => {
   // TODO fix onchange vs on Input, maxlength, minlength, size
   return (
     <TimerInputs disabled={disabled}>
-      <ws.TimerInputBox
+      <props.C
         {...props}
         disabled={disabled}
         type={type}

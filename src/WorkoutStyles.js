@@ -5,18 +5,31 @@ import styled, { css } from "styled-components";
 
 const buttonHoverColor = "silver";
 const textColor = "wheat";
-const blinkAnimation = css` 
-@keyframes blink {
-  0% {opacity: 1;}
-  20% {opacity: 0.9;}
-  40% {opacity: 0.8;}
-  60% {opacity: 0.7;}
-  80% {opacity: 0.6;}
-  90% {opacity: 0.5;}
-  100% {opacity: 0.2;}
-}
-
-  `;
+const blinkAnimation = css`
+  @keyframes blink {
+    0% {
+      opacity: 1;
+    }
+    20% {
+      opacity: 0.9;
+    }
+    40% {
+      opacity: 0.8;
+    }
+    60% {
+      opacity: 0.7;
+    }
+    80% {
+      opacity: 0.6;
+    }
+    90% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 0.2;
+    }
+  }
+`;
 const containerStyle = `
     color: ${textColor};
     display: flex;
@@ -29,6 +42,9 @@ const containerStyle = `
 export const TimerInputGroup = styled.span`
   ${containerStyle}
   flex-direction: row;
+  flex-basis:100%;
+  flex-grow: 10;
+  flex-wrap: wrap;
   margin: 0 0.2rem;
   align-items: flex-start;
   justify-content: flext-start;
@@ -108,13 +124,16 @@ export const TimerTypeSelect = styled.span`
 `;
 
 export const TimerInputBox = styled.input`
+  .help-fill {
+    border: 1px solid red;
+  }
   ${containerStyle}
   color: ${textColor};
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   align-items: end;
-  background-color: black;
+  background-color: ${buttonHoverColor};
   cursor: pointer;
   height: 100%;
   font-family: ui-monospace;
@@ -126,15 +145,17 @@ export const TimerInputBox = styled.input`
   font-size: x-large;
   width: 3rem;
 
+  :hover, :active{
+    background-color: ${buttonHoverColor};
+    background: ${buttonHoverColor};
+  }
   &:disabled {
     background-color: black;
     color: gray;
     display: none;
   }
-  &:disabled + label {
-    display: none;
-  }
-  &:before {
+  :disabled + label {
+    background-color: black;
   }
   + label {
     justify-content: center;
@@ -143,6 +164,16 @@ export const TimerInputBox = styled.input`
     font-size: normal;
     color: white;
   }
+`;
+
+export const TimerTextArea = styled(TimerInputBox)`
+  color:blue;
+  min-width: 10rem;
+  overflow: visible;
+  display: flex;
+  flex-grow: 100;
+  flex-shrink: 0;
+  flex-basis: 100%;
 `;
 export const TimerLabel = styled.label`
   justify-content: center;
@@ -156,7 +187,6 @@ export const Wrap = styled.label`
   color: ${textColor};
 `;
 
-
 export const Container = styled.div`
   ${blinkAnimation}
   display: flex;
@@ -166,7 +196,7 @@ export const Container = styled.div`
   & p {
     padding-left: 0.2rem;
   }
-  & strong{
+  & strong {
     align-self: center;
   }
 `;

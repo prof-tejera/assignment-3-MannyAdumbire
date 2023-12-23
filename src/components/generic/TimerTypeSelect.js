@@ -13,7 +13,7 @@ const TimerType = styled(ws.Button)`
       color: black;
     `}
   :hover::before {
-    content:"＋";
+    content:"⏰";
   }
 `;
 const TimerOptionsSelect = ({
