@@ -1,5 +1,5 @@
 import React, { useEffect, useState} from "react";
-import { useTimer } from "./UseTimer.js";
+import { useTimer } from "./useTimer.js";
 import TimerDisplay from "../generic/TimerDisplay.js";
 import * as h from "../../utils/helpers.js";
 

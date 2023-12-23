@@ -11,21 +11,20 @@ const TimerDisplayWrap = styled(ws.Button)`
   align-items: center;
   padding-left: 0.2rem;
   border-radius: 0;
-  border: solid 1px white;
   ${(props) =>
     props.isEdit === true &&
     css`
-  :hover {
-    hover="silver";
-  }
+      :hover {
+        border: solid 1px silver;
+      }
     `};
   p {
     white-space: pre-wrap;
   }
-  span {
+  small {
     font-size: 1rem;
     padding: 0rem 0.2rem;
-    &.timerId {
+    &.description {
       font-size: small;
       color: gray;
       font-weight: normal;
@@ -45,6 +44,7 @@ const TimerDisplayWrap = styled(ws.Button)`
     css`
       flex-direction: column;
       align-self: center
+      justify-self: center;
       & .direction {
         justify-self: flex-start;
       }
@@ -93,8 +93,7 @@ const TimerDisplay = (props) => {
           (props.status === "resting" ? " REST " : " ROUND ") +
             `${props.round} / ${props.roundsTotal}`}
       </p>
-      <p className="description">{props.description}</p>
-      <small className="timerId">{props.id}</small>
+      <small className="description">{props.description}</small>
     </TimerDisplayWrap>
   );
 };

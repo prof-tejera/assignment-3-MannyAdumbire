@@ -23,6 +23,8 @@ const MenuButton = styled(ws.Button)`
 `;
 const StyledLink = styled(Link)`
   text-decoration: none;
+  margin: 0rem 1rem;
+  padding: 0px 0px;
   font-size: 2rem;
     color: white;
   & a {

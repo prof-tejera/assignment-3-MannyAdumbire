@@ -113,15 +113,11 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
    * @param {Map} options.timersMap - for accessing timer directly by id.
    * @param {boolean} options.isRunning - Whether the workout is running.
    * @param {string} options.activeTimer - The id of the active timer.
-   * @param {number} options.secondsTotal - set time on all timers totalled.
-   * @param {number} options.secondsLeft - time left on all timers totalled.
    */
   const [options, setOptions] = useState({
     mode: mode,
     isRunning: false,
     activeTimer: null,
-    secondsTotal: 0,
-    secondsLeft: 0,
   });
   const [workout, setWorkout] = useState({
     mode: mode,

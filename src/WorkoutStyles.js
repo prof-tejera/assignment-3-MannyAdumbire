@@ -32,9 +32,16 @@ const blinkAnimation = css`
 `;
 export const helpblink = css`
   ${(props) =>
-    props.isEdit &&
+    (props.showHelp || props.isEdit) &&
     css`
       animation: blink 2s infinite;
+    `}
+`;
+export const editborder = css`
+  ${(props) =>
+    props.isEdit &&
+    css`
+      border: solid 1px green;
     `}
 `;
 
@@ -54,7 +61,6 @@ export const helpborder = css`
     props.isEdit &&
     css`
       border: solid 1px green;
-      animation: blink 2s infinite;
     `}
 `;
 const containerStyle = `
@@ -68,12 +74,13 @@ const containerStyle = `
 
 export const TimerInputGroup = styled.span`
   ${containerStyle}
-  ${helpblink}
+  ${helpborder}
   flex-direction: row;
   flex-wrap: nowrap;
-  margin: 0 0.2rem;
+  margin: 0 0rem;
+  padding-bottom: 0rem;
   align-items: flex-start;
-  justify-content: flext-start;
+  align-self: flex-start;
 `;
 export const TimerDisplay = styled.div`
   font-size: x-large;
@@ -104,7 +111,6 @@ export const Button = styled.div`
   min-height: 2rem;
   min-width: 2rem;
   margin: 0.2rem;
-  border: solid 1px white;
   border-radius: 20%;
   justify-content: center;
   text-align: center;
@@ -152,17 +158,18 @@ export const TimerTypeSelect = styled.span`
 export const TimerInputBox = styled.input`
   ${containerStyle}
   ${helpborder}
+  ${helpblink}
   color: ${textColor};
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: center;
   background-color: ${buttonHoverColor};
   cursor: pointer;
   height: 100%;
   font-family: ui-monospace;
   font-size: x-large;
-  margin: 0rem 0.2rem 2rem 0rem;
+  margin: 0.5rem;
   background-color: black;
   border: solid 1px white;
   color: white;
@@ -183,6 +190,7 @@ export const TimerInputBox = styled.input`
     background-color: black;
   }
   + label {
+    font-weight: bold;
     justify-content: center;
     align-items: center;
     font-size: small;

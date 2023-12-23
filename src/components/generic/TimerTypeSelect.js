@@ -8,6 +8,12 @@ const TimerType = styled(ws.Button)`
     background-color: white;
   }
   ${(props) =>
+    props.disabledTypes.includes(props.value) &&
+    css`
+      visibility: hidden;
+      pointer-events: none;
+    `}
+  ${(props) =>
     props.selected &&
     css`
       border: solid 1px green;
@@ -35,6 +41,7 @@ const TimerOptionsSelect = ({
   isEdit,
   currentType,
   timerId,
+  disabledTypes,
   ...props
 }) => {
   function handleChange(e) {
@@ -47,13 +54,14 @@ const TimerOptionsSelect = ({
     <ws.TimerInputGroup currentType={currentType}>
       {options.map((optionValue, idx) => (
         <TimerType
-          key={`option-${idx}`}
+          key={`${optionValue}`}
           hover="lightgreen"
           onClick={handleChange}
           id={`${safeLabel}-${optionValue}`}
           timerId={timerId || false}
-          isEdit={isEdit} 
           selected={ currentType === optionValue.toLowerCase() }
+          disabledTypes={disabledTypes}
+          value={optionValue}
           {...(currentType === optionValue.toLowerCase && { selected: "" })}
         >
           {optionValue}

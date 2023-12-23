@@ -20,6 +20,7 @@ const EditTimersWrap = styled(ws.Container)`
 
 const Help = styled(ws.Container)`
   white-space: pre-wrap;
+  border: none;
   font-size: x-large;
   display: flex;
   flex: 1 0 auto;
@@ -31,6 +32,7 @@ const Help = styled(ws.Container)`
 
 const restTimers = ["tabata"];
 const roundsTimers = ["xy", "tabata"];
+const timerTypes = ["stopwatch", "countdown", "xy", "tabata"];
 
 /**
  * Manage inputs logic & UI for editing each Timer's props
@@ -40,7 +42,7 @@ export const WorkoutEdit = () => {
   const [timerToEditId, setTimerIdToEditId] = useState(false);
   const timerToEdit = timers.get(timerToEditId);
   // If the timer to edit isn't found, clear it
-  if(!timerToEdit && timerToEditId) {
+  if (!timerToEdit && timerToEditId) {
     setTimerIdToEditId(false);
   }
 
@@ -61,7 +63,7 @@ export const WorkoutEdit = () => {
   );
 
   // Track which timer types are valid/enabled based on the current input values.
-  let enabledTimerTypes = [];
+  let disabledTimerTypes = [];
 
   // Update all the inputs when the user clicks to edit a timer.
   useEffect(() => {
@@ -108,11 +110,12 @@ export const WorkoutEdit = () => {
     // Clear the Edit Timer
     setTimerIdToEditId(false);
   }
-  if (secondsPerRound || minutesPerRound) {
+  if (!secondsPerRound && !minutesPerRound) {
     // Determine which timer types are available based on the current input values.
-    enabledTimerTypes.push("Stopwatch", "Countdown", "XY", "Tabata");
-  } else if (secondsRest || minutesRest) {
-    enabledTimerTypes.push("Tabata");
+    disabledTimerTypes.push("stopwatch", "countdown", "xy");
+    if (!secondsRest && !minutesRest) {
+      disabledTimerTypes.push("tabata");
+    }
   }
 
   // The options for the timer type select.
@@ -121,7 +124,8 @@ export const WorkoutEdit = () => {
       label: "Timer Type",
       type: "select",
       value: timerType.current,
-      options: enabledTimerTypes,
+      options: timerTypes,
+      disabledTypes: disabledTimerTypes,
       onChangeFn: (type) => {
         timerType.current = type.toLowerCase();
         addTimer();
@@ -146,7 +150,7 @@ export const WorkoutEdit = () => {
       onChangeFn: setMinutesPerRound,
       type: "number",
       min: "0",
-      isEdit: enabledTimerTypes.length < 4,
+      showHelp: disabledTimerTypes.includes("stopwatch"),
     },
     {
       C: ws.TimerInputBox,
@@ -156,7 +160,7 @@ export const WorkoutEdit = () => {
       min: "0",
       max: "59",
       type: "number",
-      isEdit: enabledTimerTypes.length < 4,
+      showHelp: disabledTimerTypes.includes("stopwatch"),
     },
     {
       C: ws.TimerInputBox,
@@ -174,7 +178,7 @@ export const WorkoutEdit = () => {
       onChangeFn: setMinutesRest,
       min: "0",
       type: "number",
-      isEdit: enabledTimerTypes < 1,
+      showHelp: disabledTimerTypes.includes("tabata"),
     },
     {
       C: ws.TimerInputBox,
@@ -184,26 +188,28 @@ export const WorkoutEdit = () => {
       min: "0",
       max: "59",
       type: "number",
-      isEdit: enabledTimerTypes < 1,
+      showHelp: disabledTimerTypes.includes("tabata"),
     },
   ];
   return (
     <EditTimersWrap>
       <TimerTotalDisplay title="Workout Length: " subtractElapsed={false} />
       <ws.Container>
-        {timerInputs.map((timertype, idx) => (
-          <TimerInput
-            C={timertype.type}
-            key={`option-${idx}`}
-            label={timertype.label}
-            hover="silver"
-            value={timertype.value}
-            onChangeFn={timertype.onChangeFn}
-            disabled={timertype.disabled}
-            {...timertype}
-          />
-        ))}
-        {!enabledTimerTypes.length ? (
+        <ws.TimerInputGroup isEdit={!!timerToEdit}>
+          {timerInputs.map((timertype, idx) => (
+            <TimerInput
+              C={timertype.type}
+              key={`option-${idx}`}
+              label={timertype.label}
+              hover="silver"
+              value={timertype.value}
+              onChangeFn={timertype.onChangeFn}
+              disabled={timertype.disabled}
+              {...timertype}
+            />
+          ))}
+        </ws.TimerInputGroup>
+        {!timerToEdit && disabledTimerTypes.length === timerTypes.length ? (
           <Help isEdit={true}>
             <span>👈 </span>EDIT timer
           </Help>
@@ -211,9 +217,8 @@ export const WorkoutEdit = () => {
           ""
         )}
         {timerToEdit && (
-          <Help>
-            <span>👈</span>EDIT {timerToEdit && `#${timerToEdit.timerId}`}
-      {/* {timerToEdit && <Timer style={{ transform: .2 }} {...timerToEdit} />} */}
+          <Help isEdit={true}>
+            {/* <span>👈</span>EDIT {timerToEdit && `#${timerToEdit.timerId}`} */}
           </Help>
         )}
       </ws.Container>
@@ -228,32 +233,31 @@ export const WorkoutEdit = () => {
             selected={timerType.current === option.value}
             timerId={timerToEditId}
             onChangeFn={option.onChangeFn}
-            disabled={option.disabled}
             options={option.options}
             {...option}
           />
         ))}
-        {enabledTimerTypes.length && !timerToEdit ? (
+        {!timerToEdit && disabledTimerTypes.length !== timerTypes.length ? (
           <Help isEdit={!timers.size} title="Add a new timer">
-            <span>👈</span> ADD new
+            <span>👈</span> ADD timer
           </Help>
         ) : (
           ""
         )}
-        {enabledTimerTypes.length && timerToEdit ? (
-          <Help title="CONFIRM type to update">
-            <span>👈</span> SAVE{" "}
-            {timerToEdit ? (
-              <>{`#${timerToEdit.timerId}`}</>
-            ) : (
-              ""
-            )}
+        {timerToEdit ? (
+          <Help isEdit={timerToEdit} title="CONFIRM type to update">
+            <span>👈</span> <strong>SAVE{" "}</strong>
+            {timerToEdit ? <>{`#${timerToEdit.timerId}`}</> : ""}
           </Help>
         ) : (
           ""
         )}
       </ws.Container>
-      <TimersPanel canEdit={true} timers={timers} editTimerIdSetter={setTimerIdToEditId} />
+      <TimersPanel
+        canEdit={true}
+        timers={timers}
+        editTimerIdSetter={setTimerIdToEditId}
+      />
     </EditTimersWrap>
   );
 };

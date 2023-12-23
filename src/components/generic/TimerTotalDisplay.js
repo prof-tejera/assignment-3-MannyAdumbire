@@ -13,9 +13,9 @@ const TimerTotal = styled(ws.Container)`
   width: 100%;
   display: flex;
   align-items: center;
+  justify-content: center;
   color: white;
   min-width: 15rem;
-  /* transition: background 1s ease; */
   ${(props) =>
     props.percent &&
     css`
