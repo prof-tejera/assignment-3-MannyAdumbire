@@ -14,7 +14,7 @@ import TimersPanel from "../components/generic/TimersPanel.js";
 const EditTimersWrap = styled(ws.Container)`
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   flex-grow: 0;
 `;
 

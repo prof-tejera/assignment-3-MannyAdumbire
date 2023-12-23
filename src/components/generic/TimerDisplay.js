@@ -44,6 +44,7 @@ const TimerDisplayWrap = styled(ws.Button)`
     ["running", "resting"].includes(props.status) &&
     css`
       flex-direction: column;
+      align-self: center
       & .direction {
         justify-self: flex-start;
       }

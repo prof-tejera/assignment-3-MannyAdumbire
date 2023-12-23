@@ -10,6 +10,7 @@ import * as ws from "../../WorkoutStyles.js";
 const TimerTotal = styled(ws.Container)`
   border: 1px solid gray;
   margin: 1rem;
+  width: 100%;
   display: flex;
   align-items: center;
   color: white;

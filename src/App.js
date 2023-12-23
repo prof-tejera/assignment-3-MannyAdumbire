@@ -59,7 +59,7 @@ const Nav = () => {
   useEffect(() => {}, [tmrsParam]);
   return (
     <nav>
-      <ul>
+      <ul style={{justifyContent:"center"}}>
         <MenuButton>
           <StyledLink to={`/${GHPage}/workout/${tmrsParam}`}>
             Workout

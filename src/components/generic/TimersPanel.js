@@ -12,8 +12,10 @@ import Button from "./Button.js";
 const StyledTimers = styled(ws.Container)`
   flex-direction: column;
   align-items: flex-start;
+  align-self: center;
 `;
 const TimerWrap = styled(ws.Container)`
+  align-self: flex-start;
   cursor: pointer;
   ${(props) =>
     props.isEditing &&

@@ -56,7 +56,7 @@ const WorkoutView = (children) => {
   ];
   return (
     <Timers>
-      <TimerTotalDisplay title="Remaining Time: " subtractElapsed={true} />
+      <TimerTotalDisplay title="Time Remaining: " subtractElapsed={true} />
       <ws.Container className="timer-inputs">
         {buttonTypes.map((btn, idx) => (
           <Button key={`btn-${idx}`} {...btn} />
