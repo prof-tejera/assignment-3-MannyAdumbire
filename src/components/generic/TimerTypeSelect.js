@@ -3,25 +3,38 @@ import * as ws from "../../WorkoutStyles";
 import styled, { css } from "styled-components";
 
 const TimerType = styled(ws.Button)`
+  font-size: x-large;
   &.selected {
     background-color: white;
   }
   ${(props) =>
     props.selected &&
     css`
-      background-color: white;
-      color: black;
+      border: solid 1px green;
+      ${ws.helpblink}
     `}
   :hover::before {
-    content:"⏰";
+    content: "⏰";
   }
+  ${(props) =>
+    props.timerId &&
+    css`
+      :hover::before {
+        content: "💾";
+      }
+    `};
 `;
+
+// Manage the UI for selecting a timer type.
 const TimerOptionsSelect = ({
   label,
   options,
   selected,
   onChangeFn,
   disabled,
+  isEdit,
+  currentType,
+  timerId,
   ...props
 }) => {
   function handleChange(e) {
@@ -30,16 +43,18 @@ const TimerOptionsSelect = ({
 
   const safeLabel = label.replace(/[^a-zA-Z]+/g, "").toLowerCase();
 
-  // className="timer-input timer-select-option"
   return (
-    <ws.TimerInputGroup>
+    <ws.TimerInputGroup currentType={currentType}>
       {options.map((optionValue, idx) => (
         <TimerType
           key={`option-${idx}`}
           hover="lightgreen"
           onClick={handleChange}
           id={`${safeLabel}-${optionValue}`}
-          {...(optionValue === selected && { selected: "" })}
+          timerId={timerId || false}
+          isEdit={isEdit} 
+          selected={ currentType === optionValue.toLowerCase() }
+          {...(currentType === optionValue.toLowerCase && { selected: "" })}
         >
           {optionValue}
         </TimerType>

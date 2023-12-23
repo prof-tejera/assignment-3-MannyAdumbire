@@ -25,57 +25,15 @@ const timerValParamMap = {
 export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
   let timersM = new Map();
 
-  // The timers URL param.
-  const [tmrsParam, setTmrsParam] = useState(initialTmrsParam);
-  // Convert the timers URL param to a Map.
-  if (tmrsParam) {
-    // Remove the # at the beginning of the hash.
-    let workoutStr = tmrsParam.replace("#", "");
-    // Decompress the URL param.
-    workoutStr = expandTimerPropVal(workoutStr);
-    let tmrsP = workoutStr.split("&");
-    tmrsP.forEach((tmrP) => {
-      // Skip empty strings.
-      if (!tmrP) {
-        return;
-      }
-      // ***Important*** need to maintain exact order of properties for saving/restoring timers to/from URL.
-      let [
-        timerId,
-        type,
-        status,
-        secondsPerRound,
-        minutesPerRound,
-        roundsTotal,
-        secondsRest,
-        minutesRest,
-        description,
-      ] = tmrP.split(",");
-      const timerObj = {};
-      timerObj.timerId = timerId;
-      timerObj.type = type;
-      timerObj.status = status;
-      timerObj.secondsPerRound = Number(secondsPerRound);
-      timerObj.minutesPerRound = Number(minutesPerRound);
-      timerObj.roundsTotal = Number(roundsTotal);
-      timerObj.secondsRest = Number(secondsRest);
-      timerObj.minutesRest = Number(minutesRest);
-      timerObj.description = unsanitizeDescription(description);
-      // Use numeric ids for the Map.
-      timersM.set(timerId, timerObj);
-    });
-  }
-
   // use a map to keep the same order of the timers.
   const [timersMap, setTimersMap] = useState(timersM || new Map());
+  // The timers URL param.
+  const [tmrsParam, setTmrsParam] = useState(initialTmrsParam);
   // Id of the active timer running.
   const [activeTimer, setActiveTimer] = useState(false);
   // States "ready", "running", "stopped", "reset
   const [mode, setMode] = useState("reset");
-  // The max total time of all timers.
-  const totalTime = useRef(0);
-  // The total time left of all timers.
-  const totalTimeLeft = useRef(0);
+  const didInit = useRef(false);
 
   /**
    * @param {Map} tmrsMap map of timers to update the URL with.
@@ -89,22 +47,63 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     tmrs = shortenTimerPropVal(tmrs);
     setTmrsParam("#" + tmrs);
   }
+  if (!didInit.current) {
+    // Convert the timers URL param to a Map.
+    if (tmrsParam) {
+      const retrievedUrlTimers = new Map();
+      // Remove the # at the beginning of the hash.
+      let workoutStr = tmrsParam.replace("#", "");
+      // Decompress the URL param.
+      workoutStr = expandTimerPropVal(workoutStr);
+      let tmrsP = workoutStr.split("&");
+      tmrsP.forEach((tmrP) => {
+        // Skip empty strings.
+        if (!tmrP) {
+          return;
+        }
+        // ***Important*** need to maintain exact order of properties for saving/restoring timers to/from URL.
+        let [
+          timerId,
+          type,
+          status,
+          secondsPerRound,
+          minutesPerRound,
+          roundsTotal,
+          secondsRest,
+          minutesRest,
+          description,
+        ] = tmrP.split(",");
+        const timerObj = {};
+        timerObj.timerId = timerId;
+        timerObj.type = type;
+        timerObj.status = status;
+        timerObj.secondsPerRound = Number(secondsPerRound);
+        timerObj.minutesPerRound = Number(minutesPerRound);
+        timerObj.roundsTotal = Number(roundsTotal);
+        timerObj.secondsRest = Number(secondsRest);
+        timerObj.minutesRest = Number(minutesRest);
+        timerObj.description = unsanitizeDescription(description);
+        // Add missing properties,
+        timerObj.maxWorkRestTime = 0;
+        timerObj.totalElapsedMs = 0;
+        timerObj.isEditing = false;
+        // Use numeric ids for the Map.
+        retrievedUrlTimers.set(timerId, timerObj);
+        // TODO why addTimer() ^ caused infinit loop?
+      });
+      setTimersMap(retrievedUrlTimers);
+    }
+    didInit.current = true;
+  }
   // Recalculate relevant states & options whenever timersMap changes.
   useEffect(() => {
-    updateTotalTime();
-    updateTotalTimeLeft();
     // Update the URL when the timersMap changes.
     updateTimersUrlParam(timersMap);
     tagFirstLastTimers();
     resetActiveTimer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timersMap]);
-  // Update the totals when the component mounts.
-  useEffect(() => {
-    updateTotalTime();
-    updateTotalTimeLeft();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
   // Update the URL to match the tmrsParam.
   useEffect(() => {
     window.location.hash = tmrsParam;
@@ -128,8 +127,6 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     mode: mode,
     options: options,
     timers: timersMap,
-    totalTime: totalTime,
-    totalTimeLeft: totalTimeLeft,
   });
   const workoutFns = {
     setMode,
@@ -137,13 +134,13 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     removeTimer,
     swapTimers,
     nextTimer,
-    updateTotalTime,
-    updateTotalTimeLeft,
+    getTotalTime,
+    getTotalTimeLeft,
+    totalsSetter: null,
   };
 
   const workoutProps = {
     workout,
-    setWorkout,
     options,
     timers: timersMap,
     workoutFns,
@@ -172,6 +169,7 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
         }
         if (mode === "reset") {
           timer.status = "reset";
+          timer.totalElapsedMs = 0;
         }
         timer.isEditing = false;
       }
@@ -182,19 +180,11 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
       // Reset all timers to "stopped" so that "completed" timers will also be reset.
       stopTimers();
       setMode("stopped");
-      updateTotalTime();
       resetActiveTimer();
-      totalTimeLeft.current = totalTime.current;
     }
     // if (!undefined)  // TODO - causes error that is difficult to pinpoint
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
-
-  // Recaulting the total time & update the URL.
-  useEffect(() => {
-    updateTotalTime();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timersMap, mode]);
 
   // Keep the options in sync with mode.
   useEffect(() => {
@@ -222,6 +212,9 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     // Edit existing timer or add a new one.
     const timerId = timer.timerId || makeTimerId();
     timer.timerId = timerId;
+    timer.maxWorkRestTime = 0;
+    timer.totalElapsedMs = 0;
+    timer.isEditing = false;
     newTimersMap.set(timerId, timer);
     // Update the timers.
     setTimersMap(newTimersMap);
@@ -340,44 +333,46 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     }
   }
 
-  /**
-   * Calculate totals for the timers.
-   *
-   * @param {boolean} subtractElapsed If true, only add up the time for timers that have not yet completed.
-   * @returns
-   */
-  function updateTotalTime() {
+  // Calculate totals for the timers.
+  function getTotalTime() {
     // Tally the total time.
     let total = 0;
     const timersIterator = timersMap.entries();
     for (let [, value] of timersIterator) {
       total +=
-        value.roundsTotal *
-        (value.minutesPerRound * 60 +
-          value.secondsPerRound +
-          value.minutesRest * 60 +
-          value.secondsRest);
+      value.roundsTotal *(
+        value.secondsPerRound +
+        value.minutesPerRound * 60 +
+        value.secondsRest +
+        value.minutesRest * 60);
     }
-    totalTime.current = total;
+    return total;
   }
-  function updateTotalTimeLeft() {
+
+  // Totals for timers that have not yet completed.
+  function getTotalTimeLeft() {
+    const total = getTotalTime();
+    if ("reset" === mode) {
+      return total;
+    }
     // tally the total time left.
-    let total = 0;
+    let elapsed = 0;
     const timersIterator = timersMap.entries();
     for (let [, value] of timersIterator) {
-      if (value.status !== "completed") {
-        // Add the time left in the rounds that have not yet started.
-        total +=
-          (value.roundsTotal - value.roundNumber) *
-          (value.minutesPerRound * 60 +
-            value.secondsPerRound +
-            value.minutesRest * 60 +
-            value.secondsRest);
-        // Add the time left in the current round.
-        total += value.secsLeftRound;
+      // Add the time left in the rounds that have not yet started.
+      if ("completed" !== value.status) {
+        elapsed += value.totalElapsedMs / 1000;
+        break;
+      } else {
+        elapsed +=
+          value.secondsPerRound +
+          value.minutesPerRound * 60 +
+          value.secondsRest +
+          value.minutesRest * 60;
       }
+      // Add the time left in the current round.
     }
-    totalTimeLeft.current = total;
+    return total - elapsed;
   }
 
   // Move to the next timer.
@@ -392,10 +387,9 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
       // Mark each timer as completed, until we reach the active timer.
       value.status = "completed";
       nextTimer.isPrevCompleted = true;
-      updateTotalTimeLeft();
       if (key === activeTimer) {
         const nextTimer = timersIterator.next().value;
-        if( nextTimer ) {
+        if (nextTimer) {
           // If there is another timer, set it as the active timer.
           setActiveTimer(nextTimer[0]);
           return;
@@ -424,11 +418,11 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     // swapTimerKey to replace.
     let keyToSwap = false;
     let lastTimer = false;
-    for (const [key,] of iterator) {
+    for (const [key] of iterator) {
       lastTimer = key;
     }
     // Can't move the first timer before itself or move the last timer forward.
-    if (isForwardSwap ? (lastTimer === timerId) : (firstTimer === timerId)) {
+    if (isForwardSwap ? lastTimer === timerId : firstTimer === timerId) {
       return;
     }
     const newMap = new Map();
@@ -436,20 +430,20 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     keyToSwap =
       (isForwardSwap && getNextKey(timersMap, timerId)) ||
       getPrevKey(timersMap, timerId);
-      // Don't swap if the timer to swap is completed.
-    if( timersMap.get(keyToSwap).status === "completed" ) {
+    // Don't swap if the timer to swap is completed.
+    if (timersMap.get(keyToSwap).status === "completed") {
       return;
     }
     if (!keyToSwap) {
       return;
     }
-    iterator =timersMap.entries();
-    const isfirst = timersMap.get(timerId).isFirst 
+    iterator = timersMap.entries();
+    const isfirst = timersMap.get(timerId).isFirst;
     for (const [key, value] of iterator) {
       // The first timer won't have a previous timer to swap with.
-      if( isfirst && key === timerId) {
-        const nextTimer =  iterator.next().value;
-        if( keyToSwap === nextTimer[0]) {
+      if (isfirst && key === timerId) {
+        const nextTimer = iterator.next().value;
+        if (keyToSwap === nextTimer[0]) {
           newMap.set(keyToSwap, timersMap.get(keyToSwap));
           newMap.set(key, value);
           setTimersMap(newMap);
@@ -461,7 +455,7 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
         newMap.set(timerId, timersMap.get(timerId));
         // Don't double add timers.
         continue;
-      }else if( timerId === key) {  
+      } else if (timerId === key) {
         newMap.set(keyToSwap, timersMap.get(keyToSwap));
         continue;
       }
@@ -491,7 +485,6 @@ export const WorkoutContextWrap = ({ children, initialTmrsParam }) => {
     if (!hasIncompleteTimers) {
       setMode("reset");
     }
-    updateTotalTime();
   }
 
   function getNextKey(map, currentKey) {

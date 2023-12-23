@@ -30,6 +30,33 @@ const blinkAnimation = css`
     }
   }
 `;
+export const helpblink = css`
+  ${(props) =>
+    props.isEdit &&
+    css`
+      animation: blink 2s infinite;
+    `}
+`;
+
+export const helpborder = css`
+  @keyframes blink {
+    0% {
+      border-color: green;
+    }
+    50% {
+      border-color: transparent;
+    }
+    100% {
+      border-color: green;
+    }
+  }
+  ${(props) =>
+    props.isEdit &&
+    css`
+      border: solid 1px green;
+      animation: blink 2s infinite;
+    `}
+`;
 const containerStyle = `
     color: ${textColor};
     display: flex;
@@ -41,10 +68,9 @@ const containerStyle = `
 
 export const TimerInputGroup = styled.span`
   ${containerStyle}
+  ${helpblink}
   flex-direction: row;
-  flex-basis:100%;
-  flex-grow: 10;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin: 0 0.2rem;
   align-items: flex-start;
   justify-content: flext-start;
@@ -124,10 +150,8 @@ export const TimerTypeSelect = styled.span`
 `;
 
 export const TimerInputBox = styled.input`
-  .help-fill {
-    border: 1px solid red;
-  }
   ${containerStyle}
+  ${helpborder}
   color: ${textColor};
   display: flex;
   flex-direction: row;
@@ -145,7 +169,8 @@ export const TimerInputBox = styled.input`
   font-size: x-large;
   width: 3rem;
 
-  :hover, :active{
+  :hover,
+  :active {
     background-color: ${buttonHoverColor};
     background: ${buttonHoverColor};
   }
@@ -167,7 +192,6 @@ export const TimerInputBox = styled.input`
 `;
 
 export const TimerTextArea = styled(TimerInputBox)`
-  color:blue;
   min-width: 10rem;
   overflow: visible;
   display: flex;

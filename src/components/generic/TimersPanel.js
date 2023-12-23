@@ -18,8 +18,16 @@ const TimerWrap = styled(ws.Container)`
   ${(props) =>
     props.isEditing &&
     css`
-      border: solid 1px green;
-      ::after {
+        border: solid 1px green;
+         ::after{
+            content: "📝️ Edit";
+         } 
+    `}
+  ${(props) =>
+    props.canEdit &&
+    css`
+      :hover {
+        border: solid 1px green;
       }
     `}
   ${(props) =>
@@ -30,10 +38,6 @@ const TimerWrap = styled(ws.Container)`
       display: none;
     `}
   ${(props) => props.status === "running" && css``}
-
-  :hover::after {
-    content: "📝️ Edit";
-  }
 `;
 const SwapButton = styled(ws.Button)`
   padding: 0rem;
@@ -61,7 +65,6 @@ const TimersPanel = ({
         <TimerWrap
           status={timer.status}
           key={`button-${id}`}
-          {...props}
           onClick={() => {
             props.editTimerIdSetter && props.editTimerIdSetter(timer.timerId);
             // Set all the other timers to not editing.
@@ -71,6 +74,7 @@ const TimersPanel = ({
             timer.isEditing = true;
           }}
           isEditing={timer.isEditing}
+          {...props}
         >
           {/* add remove when not timer "running" */}
           {!hideCancelBtn && (

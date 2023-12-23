@@ -1,16 +1,33 @@
 /**
  * This component is used to display the timer stamp
  */
-import React, { useState, useContext, useEffect } from "react";
-import styled from "styled-components";
+import React, { useState, useContext } from "react";
+import styled, { css } from "styled-components";
 import * as h from "../../utils/helpers";
 import { WorkoutContext } from "../../WorkoutContext.js";
+import * as ws from "../../WorkoutStyles.js";
 
-const TimerTotal = styled.div`
+const TimerTotal = styled(ws.Container)`
   border: 1px solid gray;
-  font-size: medium;
-  margin: 0rem 1rem;
-  display: inline-flex;
+  margin: 1rem;
+  display: flex;
+  align-items: center;
+  color: white;
+  min-width: 15rem;
+  /* transition: background 1s ease; */
+  ${(props) =>
+    props.percent &&
+    css`
+      background: linear-gradient(
+        to right,
+        green ${(props) => props.percent}%,
+        black ${(props) => props.percent}%
+      );
+    `}
+  /* 
+  An animated green gradient to fill bg based on time left.
+  */
+
   &::before {
     display: inline;
     content: "⌛";
@@ -20,37 +37,40 @@ const TimerTotal = styled.div`
 
 const Text = styled.p`
   font-size: large;
-  color: gray;
+  font-weight: bold;
+  color: white;
   margin: 0;
   padding: 0;
 `;
 
-let totalInterval = null;
-
+/**
+ *  Display the total time left for all timers.
+ *
+ * @param {string} title The displayed title of this total.
+ * @param {boolean} subtractElapsed Whether to subtract the elapsed time from the total time.
+ * @returns
+ */
 const TimerTotalDisplay = ({ title, subtractElapsed = false }) => {
-  const { options, workout, workoutFns } = useContext(WorkoutContext);
+  const { workoutFns } = useContext(WorkoutContext);
+  // eslint-disable-next-line no-unused-vars
   const [totalSeconds, setTotalSeconds] = useState(
-   subtractElapsed
-    ? workout.totalTimeLeft.current
-    : workout.totalTime.current
- );
-  // Set the total, using either, the max combined time for all timers, or just the time left.
-  useEffect(() => {
-    if (subtractElapsed) {
-        totalInterval = setInterval(() => {
-          workoutFns.updateTotalTimeLeft();
-          setTotalSeconds( workout.totalTimeLeft.current);
-        }, 1000);
-    }else{
-          setTotalSeconds( workout.totalTime.current);
-    }
-    return () => {
-      clearInterval(totalInterval);
-    };
-  }, [workout, options.mode, workoutFns, subtractElapsed]);
-  const [mins, secs] = h.minsSecsFromSecs(totalSeconds);
+    subtractElapsed
+      ? workoutFns.getTotalTimeLeft()
+      : workoutFns.getTotalTime()
+  );
+  // Pass the setter as a callback to the workoutFns, so it's available to the timers.
+  workoutFns.totalsSetter = setTotalSeconds;
+
+  const percent = subtractElapsed
+    ? (100 * workoutFns.getTotalTimeLeft()) / workoutFns.getTotalTime()
+    : 100;
+  const [mins, secs] = h.minsSecsFromSecs(
+    subtractElapsed
+      ? workoutFns.getTotalTimeLeft()
+      : workoutFns.getTotalTime()
+  );
   return (
-    <TimerTotal>
+    <TimerTotal percent={percent}>
       <Text>{title}</Text>
       <Text>
         {mins} mins {secs} secs

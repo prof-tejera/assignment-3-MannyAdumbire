@@ -10,8 +10,17 @@ const TimerDisplayWrap = styled(ws.Button)`
   justify-content: flex-start;
   align-items: center;
   padding-left: 0.2rem;
+  border-radius: 0;
+  border: solid 1px white;
+  ${(props) =>
+    props.isEdit === true &&
+    css`
   :hover {
-    border: solid 1px white;
+    hover="silver";
+  }
+    `};
+  p {
+    white-space: pre-wrap;
   }
   span {
     font-size: 1rem;
@@ -49,7 +58,7 @@ export const TimerDisplayTime = styled(ws.Container)`
     css`
       &,
       ~ .round-info {
-      color: lime;
+        color: lime;
       }
       font-size: 5rem;
     `}
@@ -73,14 +82,14 @@ export const TimerDisplayTime = styled(ws.Container)`
 
 const TimerDisplay = (props) => {
   return (
-    <TimerDisplayWrap hover="silver" status={props.status}>
+    <TimerDisplayWrap status={props.status}>
       <TimerDisplayTime status={props.status}>
         {props.mins}:{props.secs}
       </TimerDisplayTime>
       <p className="timer-type">{props.type} </p>
       <p className="round-info">
         {props.isRoundTimer &&
-          (props.status === "resting" ? " REST" : " ROUND") +
+          (props.status === "resting" ? " REST " : " ROUND ") +
             `${props.round} / ${props.roundsTotal}`}
       </p>
       <p className="description">{props.description}</p>

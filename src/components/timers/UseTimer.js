@@ -5,10 +5,11 @@ import { useState, useRef, useEffect, useContext } from "react";
 import { WorkoutContext } from "../../WorkoutContext.js";
 import * as h from "../../utils/helpers.js";
 
+const restTimers = ["tabata"];
+
 // Custom hook to manage the state of timer components.
 export const useTimer = (timerId) => {
-  const { timers, mode, workoutFns, options } =
-    useContext(WorkoutContext);
+  const { timers, mode, workoutFns, options } = useContext(WorkoutContext);
 
   // Get the timer object that matches the timerId.
   const timer = timers.get(timerId);
@@ -17,12 +18,10 @@ export const useTimer = (timerId) => {
   const [secondsPerRound] = useState(timer?.secondsPerRound || 0);
   const [minutesPerRound] = useState(timer?.minutesPerRound || 0);
   const [roundNumber, setRoundNumber] = useState(1);
-  // TODO pull from local storage.
   const [roundsTotal] = useState(timer?.roundsTotal || 1);
   const [secondsRest] = useState(timer?.secondsRest || 0);
   const [minutesRest] = useState(timer?.minutesRest || 0);
   // The time left in the current round in seconds
-  // TODO pull from local storage.
   const [secsLeftRound, setSecsLeftRound] = useState(
     h.secsFromMinsSecs(minutesPerRound, secondsPerRound) || 0
   );
@@ -52,8 +51,9 @@ export const useTimer = (timerId) => {
 
   // Recalculate the total time left.
   useEffect(() => {
-    if ("running" === timer.status) {
-      workoutFns.updateTotalTimeLeft();
+    if (!!workoutFns.totalsSetter) {
+      // Recalculate the total time left.
+      workoutFns.totalsSetter(workoutFns.getTotalTimeLeft());
     }
   }, [secsLeftRound, workoutFns, timer]);
 
@@ -61,6 +61,14 @@ export const useTimer = (timerId) => {
   useEffect(() => {
     // Reset timer to initial state.
     function resetTimer() {
+      // Calculate the max time this timer can run.
+      if (roundsTotal) {
+        timer.maxWorkRestTime =
+          (secondsPerRound + minutesPerRound * 60) * roundsTotal;
+        if (restTimers.includes(timer.type)) {
+          timer.maxWorkRestTime += secondsRest;
+        }
+      }
       setSecsLeftRound(
         h.secsFromMinsSecs(minutesPerRound, secondsPerRound) || 0
       );
@@ -82,6 +90,7 @@ export const useTimer = (timerId) => {
     switch (options.mode) {
       case "stopped":
         // Only run for the active timer.
+
         if ("running" === timer.status) {
           timer.status = "stopped";
         }
@@ -107,7 +116,9 @@ export const useTimer = (timerId) => {
                   secondsPerRound
                 );
               }
+              // Reduce the ms left by the timer frequency.
               msLeft.current -= timerFrequency;
+              timer.totalElapsedMs += timerFrequency;
               // console.info(msLeft.current);
               if (msLeft.current > 0) {
                 // Only cause a rerender on the update frequency, and on the last "tick".

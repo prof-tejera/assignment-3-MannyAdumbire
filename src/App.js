@@ -24,6 +24,7 @@ const MenuButton = styled(ws.Button)`
 const StyledLink = styled(Link)`
   text-decoration: none;
   font-size: 2rem;
+    color: white;
   & a {
     display: flex;
     align-items: center;
@@ -67,9 +68,9 @@ const Nav = () => {
         <MenuButton>
           <StyledLink to={`/${GHPage}/edit/${tmrsParam}`}>Edit</StyledLink>
         </MenuButton>
-        <MenuButton>
+        {/* <MenuButton>
           <StyledLink to={`/${GHPage}/docs/`}>Documentation</StyledLink>
-        </MenuButton>
+        </MenuButton> */}
       </ul>
     </nav>
   );

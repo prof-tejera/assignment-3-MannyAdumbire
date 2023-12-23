@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState} from "react";
 import { useTimer } from "./UseTimer.js";
 import TimerDisplay from "../generic/TimerDisplay.js";
 import * as h from "../../utils/helpers.js";
@@ -8,6 +8,7 @@ const roundsTimers = ["xy", "tabata"];
 
 
 const Timer = (props) => {
+
   // The displayed amount of time left in minutes & seconds.
   const [minutesShown, setMinutesShown] = useState("00");
   const [secondsShown, setSecondsShown] = useState("00");
@@ -42,6 +43,7 @@ const Timer = (props) => {
       return totalSecsPerRound - secsLeftRound;
     }
   }, [secsLeftRound, props.minutesPerRound, props.secondsPerRound, props.type]);
+
 
   return (
     <TimerDisplay

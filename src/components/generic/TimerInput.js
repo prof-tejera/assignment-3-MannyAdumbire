@@ -29,7 +29,7 @@ const TimerInput = ({ label, value, onChangeFn, disabled, ...props }) => {
         className="timer-input"
         name={id}
         id={id}
-        value={value || ""}
+        value={value ?? ""}
         onChange={onChangeFn ? handleChange : undefined}
       />
       <ws.TimerLabel disabled={disabled} htmlFor={id}>
