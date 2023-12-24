@@ -10,6 +10,7 @@ import TimerTotalDisplay from "../components/generic/TimerTotalDisplay.js";
 import TimerInput from "../components/generic/TimerInput.js";
 import TimerTypeSelect from "../components/generic/TimerTypeSelect.js";
 import TimersPanel from "../components/generic/TimersPanel.js";
+import { secsFromMinsSecs } from "../utils/helpers.js";
 
 const EditTimersWrap = styled(ws.Container)`
   display: flex;
@@ -102,6 +103,7 @@ export const WorkoutEdit = () => {
         roundsTotal: roundsTimers.includes(type) ? roundsTotal : 1,
         secondsRest: restTimers.includes(type) ? secondsRest : 0,
         minutesRest: restTimers.includes(type) ? minutesRest : 0,
+        secsLeftRound: secsFromMinsSecs(minutesPerRound, secondsPerRound), 
         description: description,
       });
     } else {

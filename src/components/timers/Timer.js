@@ -28,8 +28,8 @@ const Timer = (props) => {
       minsPart = h.minsPartFromSecs(getPassedSeconds());
     } else {
       // Other timers show time left.
-      secsPart = h.secsPartFromSecs(secsLeftRound);
-      minsPart = h.minsPartFromSecs(secsLeftRound);
+        secsPart = h.secsPartFromSecs(secsLeftRound);
+        minsPart = h.minsPartFromSecs(secsLeftRound);
     }
     // Update displyed time left for round.
     setSecondsShown(h.formatSeconds(secsPart));
@@ -42,7 +42,7 @@ const Timer = (props) => {
       );
       return totalSecsPerRound - secsLeftRound;
     }
-  }, [secsLeftRound, props.minutesPerRound, props.secondsPerRound, props.type]);
+  }, [secsLeftRound, props.minutesPerRound, props.secondsPerRound, props.secsLeftRound, props.type]);
 
 
   return (

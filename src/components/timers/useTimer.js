@@ -15,12 +15,12 @@ export const useTimer = (timerId) => {
   const timer = timers.get(timerId);
 
   // Timer logic Props that sometimes cause component rerender.
-  const [secondsPerRound] = useState(timer?.secondsPerRound || 0);
-  const [minutesPerRound] = useState(timer?.minutesPerRound || 0);
+  const [secondsPerRound, setSecondsPerRound] = useState(timer?.secondsPerRound || 0);
+  const [minutesPerRound, setMinutesPerRound] = useState(timer?.minutesPerRound || 0);
   const [roundNumber, setRoundNumber] = useState(1);
-  const [roundsTotal] = useState(timer?.roundsTotal || 1);
-  const [secondsRest] = useState(timer?.secondsRest || 0);
-  const [minutesRest] = useState(timer?.minutesRest || 0);
+  const [roundsTotal, setRoundsTotal] = useState(timer?.roundsTotal || 1);
+  const [secondsRest, setSecondsRest] = useState(timer?.secondsRest || 0);
+  const [minutesRest, setMinutesRest] = useState(timer?.minutesRest || 0);
   // The time left in the current round in seconds
   const [secsLeftRound, setSecsLeftRound] = useState(
     h.secsFromMinsSecs(minutesPerRound, secondsPerRound) || 0
@@ -49,8 +49,22 @@ export const useTimer = (timerId) => {
     }
   }, [timer, timers, timerId, secsLeftRound, options, roundNumber]);
 
-  // Recalculate the total time left.
+  //Sync the timer state with the timer object user-editable props.
   useEffect(() => {
+    if (timer) {
+      setSecondsPerRound(timer.secondsPerRound);
+      setMinutesPerRound(timer.minutesPerRound);  
+      setRoundsTotal(timer.roundsTotal);
+      setSecondsRest(timer.secondsRest)
+      setMinutesRest(timer.minutesRest);
+      const roundTime = h.secsFromMinsSecs(timer.minutesPerRound, timer.secondsPerRound);
+      setSecsLeftRound(roundTime);
+    }
+  }, [timers, timer]);
+
+  // manage the total time left and timer time left.
+  useEffect(() => {
+    // sync secsLeftRound with the timer object.
     if (!!workoutFns.totalsSetter) {
       // Recalculate the total time left.
       workoutFns.totalsSetter(workoutFns.getTotalTimeLeft());

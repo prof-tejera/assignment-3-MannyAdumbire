@@ -62,9 +62,10 @@ const TimerTotalDisplay = ({ title, subtractElapsed = false }) => {
   // Pass the setter as a callback to the workoutFns, so it's available to the timers.
   workoutFns.totalsSetter = setTotalSeconds;
 
-  const percent = subtractElapsed
+  const percent = workoutFns.getTotalTime() && (subtractElapsed)
     ? (100 * workoutFns.getTotalTimeLeft()) / workoutFns.getTotalTime()
-    : 100;
+    : 0;
+  
   const [mins, secs] = h.minsSecsFromSecs(
     subtractElapsed
       ? workoutFns.getTotalTimeLeft()
